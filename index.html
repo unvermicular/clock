@@ -4,280 +4,362 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Productivity Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Arial&family=Roboto&family=Times+New+Roman&family=Open+Sans&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-color: #ffffff;
             --text-color: #000000;
-            --clock-color: #000000;
-            --font-family: Arial, sans-serif;
+            --accent-color: #007bff;
+            --button-bg: #007bff;
+            --button-text: #ffffff;
+            --font-family: 'Arial', sans-serif;
         }
-
+        body.dark {
+            --bg-color: #121212;
+            --text-color: #ffffff;
+            --accent-color: #bb86fc;
+            --button-bg: #bb86fc;
+            --button-text: #000000;
+        }
         body {
+            font-family: var(--font-family);
             background-color: var(--bg-color);
             color: var(--text-color);
-            font-family: var(--font-family);
             margin: 0;
             padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
         }
-
-        #container {
-            max-width: 800px;
-            width: 100%;
-        }
-
         h1, h2 {
             text-align: center;
         }
-
-        #clocks {
-            display: flex;
-            justify-content: space-around;
-            margin-bottom: 40px;
-        }
-
-        .clock {
-            width: 200px;
-            height: 200px;
-            border: 10px solid var(--clock-color);
-            border-radius: 50%;
-            position: relative;
-        }
-
-        .hand {
-            position: absolute;
-            left: 50%;
-            transform-origin: 50% 100%;
-            transition: transform 0.05s cubic-bezier(0.4, 2.0, 0.2, 1.0);
-        }
-
-        .hour-hand {
-            width: 6px;
-            height: 60px;
-            background-color: var(--clock-color);
-            top: 40px;
-            margin-left: -3px;
-        }
-
-        .minute-hand {
-            width: 4px;
-            height: 80px;
-            background-color: var(--clock-color);
-            top: 20px;
-            margin-left: -2px;
-        }
-
-        .second-hand {
-            width: 2px;
-            height: 90px;
-            background-color: red;
-            top: 10px;
-            margin-left: -1px;
-        }
-
-        #digital-clock {
-            font-size: 48px;
-            text-align: center;
-            color: var(--clock-color);
-        }
-
-        #pomodoro {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        #timer-display {
-            font-size: 72px;
-            margin-bottom: 20px;
-        }
-
-        button {
-            padding: 10px 20px;
-            margin: 5px;
-            background-color: var(--text-color);
-            color: var(--bg-color);
-            border: none;
-            cursor: pointer;
-            font-family: var(--font-family);
-        }
-
-        button:hover {
-            opacity: 0.8;
-        }
-
-        #quote {
-            text-align: center;
-            font-style: italic;
-            margin-bottom: 40px;
+        .section {
+            margin: 20px 0;
             padding: 20px;
-            border: 1px solid var(--text-color);
+            border: 1px solid var(--accent-color);
             border-radius: 8px;
         }
-
-        #settings {
+        button {
+            background-color: var(--button-bg);
+            color: var(--button-text);
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        #analog-clock {
+            display: block;
+            margin: 0 auto;
+        }
+        #digital-clock {
+            font-size: 2em;
             text-align: center;
         }
-
+        #pomodoro-timer {
+            font-size: 3em;
+            text-align: center;
+        }
+        #motivational-quote {
+            font-style: italic;
+            text-align: center;
+            margin: 20px 0;
+        }
+        #customization {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        #customization div {
+            margin: 10px;
+        }
         label {
             display: block;
-            margin: 10px 0;
-        }
-
-        input[type="color"],
-        select {
-            margin-left: 10px;
+            margin-bottom: 5px;
         }
     </style>
 </head>
 <body>
-    <div id="container">
-        <h1>Productivity Dashboard</h1>
-        
-        <div id="clocks">
-            <div id="analog-clock" class="clock">
-                <div class="hour-hand hand"></div>
-                <div class="minute-hand hand"></div>
-                <div class="second-hand hand"></div>
+    <h1>Productivity Dashboard</h1>
+
+    <!-- Theme Toggle -->
+    <div style="text-align: center;">
+        <button id="toggle-theme">Toggle Dark/Light Mode</button>
+    </div>
+
+    <!-- Customization Section -->
+    <div class="section">
+        <h2>Theme Customization</h2>
+        <div id="customization">
+            <div>
+                <label for="bg-color">Background Color:</label>
+                <input type="color" id="bg-color" value="#ffffff">
             </div>
-            <div id="digital-clock">00:00:00</div>
-        </div>
-        
-        <div id="pomodoro">
-            <h2>Pomodoro Timer</h2>
-            <div id="timer-display">25:00</div>
-            <button id="start-pomo">Start</button>
-            <button id="reset-pomo">Reset</button>
-        </div>
-        
-        <div id="quote">
-            <p id="motivational-quote">Loading motivational quote...</p>
-        </div>
-        
-        <div id="settings">
-            <h2>Settings</h2>
-            <button id="light-mode">Light Mode</button>
-            <button id="dark-mode">Dark Mode</button>
-            <label>Background Color: <input type="color" id="bg-color" value="#ffffff"></label>
-            <label>Text Color: <input type="color" id="text-color" value="#000000"></label>
-            <label>Clock Color: <input type="color" id="clock-color" value="#000000"></label>
-            <label>Font Family:
-                <select id="font-select">
-                    <option value="Arial, sans-serif">Arial</option>
+            <div>
+                <label for="text-color">Text Color:</label>
+                <input type="color" id="text-color" value="#000000">
+            </div>
+            <div>
+                <label for="accent-color">Accent Color:</label>
+                <input type="color" id="accent-color" value="#007bff">
+            </div>
+            <div>
+                <label for="button-bg">Button Background:</label>
+                <input type="color" id="button-bg" value="#007bff">
+            </div>
+            <div>
+                <label for="button-text">Button Text:</label>
+                <input type="color" id="button-text" value="#ffffff">
+            </div>
+            <div>
+                <label for="font-family">Font:</label>
+                <select id="font-family">
+                    <option value="'Arial', sans-serif">Arial</option>
+                    <option value="'Roboto', sans-serif">Roboto</option>
                     <option value="'Times New Roman', serif">Times New Roman</option>
-                    <option value="'Courier New', monospace">Courier</option>
-                    <option value="Verdana, sans-serif">Verdana</option>
-                    <option value="Georgia, serif">Georgia</option>
+                    <option value="'Open Sans', sans-serif">Open Sans</option>
                 </select>
-            </label>
+            </div>
         </div>
     </div>
 
+    <!-- Clocks Section -->
+    <div class="section">
+        <h2>Clocks</h2>
+        <div style="display: flex; justify-content: space-around;">
+            <div>
+                <h3>Analog Clock</h3>
+                <canvas id="analog-clock" width="200" height="200"></canvas>
+            </div>
+            <div>
+                <h3>Digital Clock</h3>
+                <div id="digital-clock">00:00:00</div>
+                <div>
+                    <label for="digital-format">Format:</label>
+                    <select id="digital-format">
+                        <option value="HH:MM:SS">24-hour (HH:MM:SS)</option>
+                        <option value="hh:MM:SS A">12-hour (hh:MM:SS AM/PM)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pomodoro Timer Section -->
+    <div class="section">
+        <h2>Pomodoro Timer</h2>
+        <div id="pomodoro-timer">25:00</div>
+        <div style="text-align: center;">
+            <button id="start-pomodoro">Start</button>
+            <button id="stop-pomodoro">Stop</button>
+            <button id="reset-pomodoro">Reset</button>
+        </div>
+        <p id="pomodoro-status">Work Session</p>
+    </div>
+
+    <!-- Motivational Quote Section -->
+    <div class="section">
+        <h2>Motivational Quote</h2>
+        <p id="motivational-quote">Loading...</p>
+    </div>
+
     <script>
-        const root = document.documentElement;
+        // Theme Toggle
+        const toggleTheme = document.getElementById('toggle-theme');
+        toggleTheme.addEventListener('click', () => {
+            document.body.classList.toggle('dark');
+            updateColorPickers();
+        });
 
-        // Update clocks
-        function updateClocks() {
-            const now = new Date();
-            const seconds = now.getSeconds();
-            const minutes = now.getMinutes();
-            const hours = now.getHours() % 12;
+        // Customization
+        const colorInputs = ['bg-color', 'text-color', 'accent-color', 'button-bg', 'button-text'];
+        colorInputs.forEach(id => {
+            const input = document.getElementById(id);
+            input.addEventListener('input', () => {
+                document.documentElement.style.setProperty(`--${id}`, input.value);
+            });
+        });
 
-            const secondDeg = seconds * 6;
-            const minuteDeg = minutes * 6 + seconds * 0.1;
-            const hourDeg = hours * 30 + minutes * 0.5;
+        const fontSelect = document.getElementById('font-family');
+        fontSelect.addEventListener('change', () => {
+            document.documentElement.style.setProperty('--font-family', fontSelect.value);
+        });
 
-            document.querySelector('.second-hand').style.transform = `rotate(${secondDeg}deg)`;
-            document.querySelector('.minute-hand').style.transform = `rotate(${minuteDeg}deg)`;
-            document.querySelector('.hour-hand').style.transform = `rotate(${hourDeg}deg)`;
-
-            document.getElementById('digital-clock').textContent = now.toLocaleTimeString('en-US', { hour12: false });
+        function updateColorPickers() {
+            colorInputs.forEach(id => {
+                const input = document.getElementById(id);
+                input.value = getComputedStyle(document.documentElement).getPropertyValue(`--${id}`).trim();
+            });
         }
-        setInterval(updateClocks, 1000);
-        updateClocks();
+        updateColorPickers(); // Initial set
 
-        // Pomodoro Timer
-        let pomodoroTimer;
-        let pomodoroTime = 25 * 60;
-
-        function updatePomodoroDisplay() {
-            const min = Math.floor(pomodoroTime / 60);
-            const sec = pomodoroTime % 60;
-            document.getElementById('timer-display').textContent = `${min}:${sec < 10 ? '0' + sec : sec}`;
-        }
-
-        document.getElementById('start-pomo').addEventListener('click', () => {
-            clearInterval(pomodoroTimer);
-            pomodoroTimer = setInterval(() => {
-                if (pomodoroTime > 0) {
-                    pomodoroTime--;
-                    updatePomodoroDisplay();
-                } else {
-                    clearInterval(pomodoroTimer);
-                    alert('Pomodoro session complete! Time for a break.');
+        // Analog Clock
+        function drawAnalogClock() {
+            const canvas = document.getElementById('analog-clock');
+            const ctx = canvas.getContext('2d');
+            const radius = canvas.height / 2;
+            ctx.translate(radius, radius);
+            drawClock();
+            function drawClock() {
+                drawFace(ctx, radius);
+                drawNumbers(ctx, radius);
+                drawTime(ctx, radius);
+            }
+            function drawFace(ctx, radius) {
+                ctx.beginPath();
+                ctx.arc(0, 0, radius, 0, 2 * Math.PI);
+                ctx.fillStyle = 'white';
+                ctx.fill();
+                const grad = ctx.createLinearGradient(0, -radius, 0, radius);
+                grad.addColorStop(0, 'white');
+                grad.addColorStop(1, 'black');
+                ctx.strokeStyle = grad;
+                ctx.lineWidth = radius * 0.1;
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(0, 0, radius * 0.1, 0, 2 * Math.PI);
+                ctx.fillStyle = '#333';
+                ctx.fill();
+            }
+            function drawNumbers(ctx, radius) {
+                ctx.font = radius * 0.15 + 'px arial';
+                ctx.textBaseline = 'middle';
+                ctx.textAlign = 'center';
+                for (let num = 1; num < 13; num++) {
+                    const ang = num * Math.PI / 6;
+                    ctx.rotate(ang);
+                    ctx.translate(0, -radius * 0.85);
+                    ctx.rotate(-ang);
+                    ctx.fillText(num.toString(), 0, 0);
+                    ctx.rotate(ang);
+                    ctx.translate(0, radius * 0.85);
+                    ctx.rotate(-ang);
                 }
-            }, 1000);
-        });
-
-        document.getElementById('reset-pomo').addEventListener('click', () => {
-            clearInterval(pomodoroTimer);
-            pomodoroTime = 25 * 60;
-            updatePomodoroDisplay();
-        });
-
-        updatePomodoroDisplay();
-
-        // Motivational Quotes (fetch from API for unlimited variety)
-        async function updateQuote() {
-            try {
-                const response = await fetch('https://api.quotable.io/random?tags=inspirational|motivational');
-                const data = await response.json();
-                document.getElementById('motivational-quote').textContent = data.content;
-            } catch (error) {
-                // Fallback to example quote if API fails
-                document.getElementById('motivational-quote').textContent = "Your story is what you have, what you will always have. It is something to own.";
+            }
+            function drawTime(ctx, radius) {
+                const now = new Date();
+                let hour = now.getHours();
+                let minute = now.getMinutes();
+                let second = now.getSeconds();
+                // hour
+                hour = hour % 12;
+                hour = (hour * Math.PI / 6) + (minute * Math.PI / (6 * 60)) + (second * Math.PI / (360 * 60));
+                drawHand(ctx, hour, radius * 0.5, radius * 0.07);
+                // minute
+                minute = (minute * Math.PI / 30) + (second * Math.PI / (30 * 60));
+                drawHand(ctx, minute, radius * 0.8, radius * 0.07);
+                // second
+                second = (second * Math.PI / 30);
+                drawHand(ctx, second, radius * 0.9, radius * 0.02);
+            }
+            function drawHand(ctx, pos, length, width) {
+                ctx.beginPath();
+                ctx.lineWidth = width;
+                ctx.lineCap = 'round';
+                ctx.moveTo(0, 0);
+                ctx.rotate(pos);
+                ctx.lineTo(0, -length);
+                ctx.stroke();
+                ctx.rotate(-pos);
             }
         }
-        updateQuote();
-        setInterval(updateQuote, 3600000); // Change every hour
+        setInterval(drawAnalogClock, 1000);
+        drawAnalogClock();
 
-        // Theme Modes
-        document.getElementById('light-mode').addEventListener('click', () => {
-            root.style.setProperty('--bg-color', '#ffffff');
-            root.style.setProperty('--text-color', '#000000');
-            root.style.setProperty('--clock-color', '#000000');
-            document.getElementById('bg-color').value = '#ffffff';
-            document.getElementById('text-color').value = '#000000';
-            document.getElementById('clock-color').value = '#000000';
+        // Digital Clock
+        let digitalFormat = 'HH:MM:SS';
+        const formatSelect = document.getElementById('digital-format');
+        formatSelect.addEventListener('change', () => {
+            digitalFormat = formatSelect.value;
+        });
+        function updateDigitalClock() {
+            const now = new Date();
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            let seconds = now.getSeconds();
+            let ampm = '';
+            if (digitalFormat.includes('hh')) {
+                ampm = hours >= 12 ? 'PM' : 'AM';
+                hours = hours % 12 || 12;
+            }
+            hours = hours < 10 ? '0' + hours : hours;
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            seconds = seconds < 10 ? '0' + seconds : seconds;
+            let timeString = digitalFormat
+                .replace('HH', hours)
+                .replace('hh', hours)
+                .replace('MM', minutes)
+                .replace('SS', seconds)
+                .replace('A', ampm);
+            document.getElementById('digital-clock').textContent = timeString;
+        }
+        setInterval(updateDigitalClock, 1000);
+        updateDigitalClock();
+
+        // Pomodoro Timer
+        let pomodoroInterval;
+        let pomodoroTime = 25 * 60; // 25 minutes
+        let isWork = true;
+        const timerDisplay = document.getElementById('pomodoro-timer');
+        const status = document.getElementById('pomodoro-status');
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(pomodoroTime / 60);
+            const seconds = pomodoroTime % 60;
+            timerDisplay.textContent = `${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        }
+
+        document.getElementById('start-pomodoro').addEventListener('click', () => {
+            if (!pomodoroInterval) {
+                pomodoroInterval = setInterval(() => {
+                    if (pomodoroTime > 0) {
+                        pomodoroTime--;
+                        updateTimerDisplay();
+                    } else {
+                        clearInterval(pomodoroInterval);
+                        pomodoroInterval = null;
+                        alert(isWork ? 'Work session over! Take a break.' : 'Break over! Back to work.');
+                        isWork = !isWork;
+                        status.textContent = isWork ? 'Work Session' : 'Break Session';
+                        pomodoroTime = isWork ? 25 * 60 : 5 * 60;
+                        updateTimerDisplay();
+                    }
+                }, 1000);
+            }
         });
 
-        document.getElementById('dark-mode').addEventListener('click', () => {
-            root.style.setProperty('--bg-color', '#000000');
-            root.style.setProperty('--text-color', '#ffffff');
-            root.style.setProperty('--clock-color', '#ffffff');
-            document.getElementById('bg-color').value = '#000000';
-            document.getElementById('text-color').value = '#ffffff';
-            document.getElementById('clock-color').value = '#ffffff';
+        document.getElementById('stop-pomodoro').addEventListener('click', () => {
+            clearInterval(pomodoroInterval);
+            pomodoroInterval = null;
         });
 
-        // Custom Theme
-        document.getElementById('bg-color').addEventListener('input', (e) => {
-            root.style.setProperty('--bg-color', e.target.value);
+        document.getElementById('reset-pomodoro').addEventListener('click', () => {
+            clearInterval(pomodoroInterval);
+            pomodoroInterval = null;
+            isWork = true;
+            status.textContent = 'Work Session';
+            pomodoroTime = 25 * 60;
+            updateTimerDisplay();
         });
 
-        document.getElementById('text-color').addEventListener('input', (e) => {
-            root.style.setProperty('--text-color', e.target.value);
-        });
+        updateTimerDisplay();
 
-        document.getElementById('clock-color').addEventListener('input', (e) => {
-            root.style.setProperty('--clock-color', e.target.value);
-        });
-
-        document.getElementById('font-select').addEventListener('change', (e) => {
-            root.style.setProperty('--font-family', e.target.value);
-        });
+        // Motivational Quote
+        async function fetchQuote() {
+            try {
+                const response = await fetch('https://api.quotable.io/quotes/random?tags=inspirational|motivational');
+                const data = await response.json();
+                document.getElementById('motivational-quote').textContent = data[0].content + ' — ' + data[0].author;
+            } catch (error) {
+                document.getElementById('motivational-quote').textContent = 'Your story is what you have, what you will always have. It is something to own.';
+            }
+        }
+        fetchQuote();
+        setInterval(fetchQuote, 3600000); // Every hour
     </script>
 </body>
 </html>
