@@ -386,7 +386,7 @@
       <div class="content">
         <div class="split">
           <div class="field">
-            <label class="label" for="accentColor">Warna Aksen</label>
+            <label class="label" for="accentColor">Accent Color</label>
             <input type="color" id="accentColor" value="#6c5ce7" />
           </div>
           <div class="field">
@@ -398,17 +398,17 @@
             </select>
           </div>
           <div class="field">
-            <label class="label" for="radiusRange">Radius Tombol</label>
+            <label class="label" for="radiusRange">Button Radius</label>
             <input type="range" id="radiusRange" min="6" max="20" step="1" />
           </div>
           <div class="field">
-            <label class="label" for="uiScale">Skala UI</label>
+            <label class="label" for="uiScale">UI Scale</label>
             <input type="range" id="uiScale" min="90" max="115" value="100" />
           </div>
         </div>
         <div class="row">
-          <button class="btn ghost inline" id="resetTheme">↺ Reset Tema</button>
-          <span class="muted">Preferensi disimpan otomatis.</span>
+          <button class="btn ghost inline" id="resetTheme">↺ Reset Theme</button>
+          <span class="muted">Settings saved automatically.</span>
         </div>
       </div>
     </details>
@@ -416,7 +416,7 @@
     <div class="grid">
       <!-- Left: Clocks -->
       <section class="panel">
-        <div class="section-title">Jam</div>
+        <div class="section-title">Clock</div>
         <div class="clock-card">
           <div class="analog-wrap">
             <div class="analog classic" id="analog">
@@ -426,7 +426,7 @@
               <div class="hand minute" id="minuteHand" aria-hidden="true"></div>
               <div class="hand second" id="secondHand" aria-hidden="true"></div>
               <div class="pin" aria-hidden="true"></div>
-              <span class="sr-only" id="analogLabel">Jam analog</span>
+              <span class="sr-only" id="analogLabel">Analog Clock</span>
             </div>
           </div>
           <div class="digital">
@@ -436,24 +436,24 @@
             <hr class="hr" />
             <div class="controls">
               <div class="field" style="min-width: 200px;">
-                <label for="timeZone" class="label">Zona Waktu</label>
+                <label for="timeZone" class="label">Time Zone</label>
                 <select id="timeZone" aria-label="Zona waktu"></select>
               </div>
               <div class="field">
-                <label class="label" for="timeFormat">Format Waktu</label>
+                <label class="label" for="timeFormat">Time Zone</label>
                 <select id="timeFormat">
-                  <option value="24">24 jam</option>
-                  <option value="12">12 jam</option>
+                  <option value="24">24 hour</option>
+                  <option value="12">12 hour</option>
                 </select>
               </div>
               <div class="field">
-                <label class="label" for="showSeconds">Detik</label>
+                <label class="label" for="showSeconds">Second</label>
                 <label class="switch"><input type="checkbox" id="showSeconds" checked /><span class="knob" aria-hidden="true"></span></label>
               </div>
               <div class="field">
-                <label class="label" for="analogStyle">Gaya Analog</label>
+                <label class="label" for="analogStyle">Analog Style</label>
                 <select id="analogStyle">
-                  <option value="classic">Klasik</option>
+                  <option value="classic">Classic</option>
                   <option value="minimal">Minimal</option>
                 </select>
               </div>
@@ -466,9 +466,9 @@
       <section class="panel pomodoro">
         <div class="section-title">Pomodoro</div>
         <div class="chips" role="tablist" aria-label="Mode Pomodoro">
-          <button class="chip active" data-mode="focus" id="chipFocus">Fokus</button>
-          <button class="chip" data-mode="short" id="chipShort">Istirahat Singkat</button>
-          <button class="chip" data-mode="long" id="chipLong">Istirahat Panjang</button>
+          <button class="chip active" data-mode="focus" id="chipFocus">Focus</button>
+          <button class="chip" data-mode="short" id="chipShort">Short Break</button>
+          <button class="chip" data-mode="long" id="chipLong">Long Break</button>
         </div>
         <div class="ring">
           <svg viewBox="0 0 120 120" aria-hidden="true">
@@ -482,40 +482,40 @@
             <circle id="progress" cx="60" cy="60" r="52" fill="none" stroke="url(#grad)" stroke-width="10" stroke-linecap="round" stroke-dasharray="326.7256" stroke-dashoffset="326.7256"></circle>
           </svg>
           <div class="timeleft">
-            <div class="phase" id="phaseLabel">Fokus</div>
+            <div class="phase" id="phaseLabel">Focus</div>
             <div class="big" id="pomTime">25:00</div>
-            <div class="small" id="pomInfo">Sesi 0 · Auto: Mati</div>
+            <div class="small" id="pomInfo">Session 0 · Auto: off</div>
           </div>
         </div>
         <div class="pom-controls">
-          <button class="btn primary" id="pomStart">▶ Mulai</button>
-          <button class="btn" id="pomPause" disabled>⏸ Jeda</button>
+          <button class="btn primary" id="pomStart">▶ Start</button>
+          <button class="btn" id="pomPause" disabled>⏸ Pause</button>
           <button class="btn ghost" id="pomReset">⟲ Reset</button>
-          <button class="btn ghost" id="pomSkip">⤼ Lewati</button>
+          <button class="btn ghost" id="pomSkip">⤼ Skip</button>
         </div>
         <div class="settings-grid">
           <div class="inline-field">
-            <label class="label" for="durFocus">Fokus (mnt)</label>
+            <label class="label" for="durFocus">Focus (mnt)</label>
             <input class="input" type="number" id="durFocus" min="1" max="120" value="25" />
           </div>
           <div class="inline-field">
-            <label class="label" for="durShort">Ist. Singkat (mnt)</label>
+            <label class="label" for="durShort">Short Break (mnt)</label>
             <input class="input" type="number" id="durShort" min="1" max="60" value="5" />
           </div>
           <div class="inline-field">
-            <label class="label" for="durLong">Ist. Panjang (mnt)</label>
+            <label class="label" for="durLong">Long Break (mnt)</label>
             <input class="input" type="number" id="durLong" min="1" max="120" value="15" />
           </div>
           <div class="inline-field">
-            <label class="label" for="longEvery">Pjg tiap (sesi)</label>
+            <label class="label" for="longEvery">Length of each (session)</label>
             <input class="input" type="number" id="longEvery" min="2" max="12" value="4" />
           </div>
           <div class="inline-field">
-            <label class="label" for="autoStart">Auto Mulai</label>
+            <label class="label" for="autoStart">Auto Start</label>
             <label class="switch"><input type="checkbox" id="autoStart" /><span class="knob" aria-hidden="true"></span></label>
           </div>
           <div class="inline-field">
-            <label class="label" for="notify">Notifikasi</label>
+            <label class="label" for="notify">Notification</label>
             <label class="switch"><input type="checkbox" id="notify" /><span class="knob" aria-hidden="true"></span></label>
           </div>
         </div>
@@ -530,15 +530,15 @@
       </div>
       <div class="quote-controls" style="margin-top:10px;">
         <div class="row">
-          <button class="btn inline" id="newQuote">🔄 Acak Sekarang</button>
-          <button class="btn inline" id="copyQuote">📋 Salin</button>
+          <button class="btn inline" id="newQuote">🔄 Randomize</button>
+          <button class="btn inline" id="copyQuote">📋 Copy</button>
         </div>
-        <div class="muted" id="quoteStatus">Otomatis berganti tiap 1 jam · 00:00:00 menuju ganti berikutnya</div>
+        <div class="muted" id="quoteStatus">Automatically changes every hour · 00:00:00 until the next change</div>
       </div>
     </section>
 
     <footer class="footer">
-      Offline-first. Preferensi disimpan di browser Anda. Tidak ada data yang dikirim keluar.
+      Offline-first. Preferences are stored in your browser. No data is sent out.
     </footer>
   </div>
 
@@ -605,7 +605,7 @@
         else themeState.mode = 'dark';
         store.set('themeState', themeState);
         applyTheme();
-        themeToggle.textContent = (document.documentElement.getAttribute('data-theme') || 'system') === 'dark' ? '🌞 Terang' : '🌗 Tema';
+        themeToggle.textContent = (document.documentElement.getAttribute('data-theme') || 'system') === 'dark' ? '🌞 Light' : '🌗 Theme';
       });
 
       openCustomize.addEventListener('click', () => {
@@ -681,7 +681,7 @@
       function populateTimeZones() {
         const zones = supportedTimeZones();
         timeZoneSelect.innerHTML = '';
-        // Grouping simple: prioritize current, Asia, etc.
+        // Grouping simple
         const current = clockPrefs.timeZone;
         // Put current on top
         const optCurrent = document.createElement('option');
@@ -697,7 +697,7 @@
         // Separator
         const osep = document.createElement('option'); osep.disabled = true; osep.textContent = '──────────';
         timeZoneSelect.appendChild(osep);
-        // Others (limited to 200 to keep dropdown manageable)
+        // Others
         let count = 0;
         for (const z of supportedTimeZones()) {
           if ([current, ...commons].includes(z)) continue;
@@ -894,7 +894,7 @@
         pomState.endAt = null;
         store.set('pomState', pomState);
         pomPause.disabled = true;
-        pomStart.textContent = '▶ Mulai';
+        pomStart.textContent = '▶ Start';
       }
       function resetPom() {
         setMode(pomState.mode);
@@ -917,7 +917,7 @@
         store.set('pomState', pomState);
         syncPomControls();
         beep();
-        notifyUser(`Selesai: ${phaseLabel.textContent}`, pomState.mode === 'focus' ? 'Waktunya istirahat.' : 'Kembali fokus, yuk!');
+        notifyUser(`Done!: ${phaseLabel.textContent}`, pomState.mode === 'focus' ? 'Time for a break.' : 'Let's get back to work!');
         if (pomState.auto) {
           nextMode();
           startPom();
@@ -931,10 +931,10 @@
         const every = Math.max(2, Math.min(12, +longEvery.value || 4));
         pomState.focusMin = f; pomState.shortMin = s; pomState.longMin = l; pomState.longEvery = every;
         store.set('pomState', pomState);
-        setMode(pomState.mode); // keep current mode but reset to new duration
+        setMode(pomState.mode);
       }
 
-      // Web Audio beep (no external assets)
+      // Web Audio beep
       let audioCtx;
       function beep() {
         try {
@@ -983,7 +983,7 @@
       // Initialize Pomodoro
       syncPomControls(); drawPom();
 
-      // MOTIVATION QUOTES (infinite via algorithmic generation)
+      // MOTIVATION QUOTES
       const quoteText = $('#quoteText');
       const quoteStatus = $('#quoteStatus');
       const newQuoteBtn = $('#newQuote');
@@ -1031,14 +1031,14 @@
 
       function capitalize(str) { return str.charAt(0).toUpperCase() + str.slice(1) }
 
-      // Include the example as a possible variant
+      // Example
       const classic = () => "Start. Your story is what you have, what you will always have. It is something to own.";
 
       let rand = seededRandom('init');
 
       function generateQuote(seedStr) {
         rand = seededRandom(seedStr);
-        // 40% two-liner, 40% mixed, 20% classic/random 3-sentence
+
         const stylePick = rand();
         if (stylePick < 0.2) {
           return classic();
@@ -1075,7 +1075,7 @@
           store.set('quoteState', quoteState);
         }
         quoteText.textContent = '';
-        // Slight accent for first word if starts with "Start"
+
         const txt = quoteState.text;
         const firstWord = txt.split(/\s+/)[0].replace(/[^A-Za-z.]/g,'');
         if (firstWord.replace('.', '') === 'Start') {
@@ -1094,7 +1094,7 @@
         const m = Math.floor((remaining % 3600000)/60000);
         const s = Math.floor((remaining % 60000)/1000);
         const fmt = (n) => String(n).padStart(2,'0');
-        quoteStatus.textContent = `Otomatis berganti tiap 1 jam · ${fmt(h)}:${fmt(m)}:${fmt(s)} menuju ganti berikutnya`;
+        quoteStatus.textContent = `Automatically changes every hour · ${fmt(h)}:${fmt(m)}:${fmt(s)} heading to the next quotes`;
       }
 
       updateQuote();
@@ -1108,8 +1108,8 @@
       copyQuoteBtn.addEventListener('click', async () => {
         try {
           await navigator.clipboard.writeText(quoteText.textContent.trim());
-          copyQuoteBtn.textContent = '✅ Disalin';
-          setTimeout(() => copyQuoteBtn.textContent = '📋 Salin', 1200);
+          copyQuoteBtn.textContent = '✅ Copied';
+          setTimeout(() => copyQuoteBtn.textContent = '📋 Copy', 1200);
         } catch(e) {
           alert('Gagal menyalin. Salin manual: ' + quoteText.textContent.trim());
         }
