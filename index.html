@@ -243,24 +243,6 @@
         grid-template-columns: 1fr;
       }
     }
-    details {
-      margin-top: 8px;
-      border: 1px dashed var(--border);
-      border-radius: 12px;
-      padding: 8px 10px;
-    }
-    details > summary {
-      cursor: pointer;
-      font-weight: 600;
-      color: var(--text);
-      list-style: none;
-    }
-    details > summary::-webkit-details-marker { display: none; }
-    .inline {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
 
     /* Clocks layout */
     .clocks {
@@ -438,51 +420,6 @@
           <button id="btnLight" role="tab" aria-selected="false" title="Light mode">Light</button>
           <button id="btnDark" role="tab" aria-selected="true" class="active" title="Dark mode">Dark</button>
         </div>
-        <details>
-          <summary>Theme Designer</summary>
-          <div class="form-grid" style="margin-top:8px">
-            <label>Accent color
-              <input type="color" id="varAccent" value="#6aa0ff" />
-            </label>
-            <label>Background
-              <input type="color" id="varBg" value="#0b0f15" />
-            </label>
-            <label>Surface (cards)
-              <input type="color" id="varCard" value="#121826" />
-            </label>
-            <label>Text color
-              <input type="color" id="varText" value="#e8eef9" />
-            </label>
-            <label>Muted text
-              <input type="color" id="varMuted" value="#90A0B7" />
-            </label>
-            <label>Button color
-              <input type="color" id="varBtnBg" value="#6aa0ff" />
-            </label>
-            <label>Button text
-              <input type="color" id="varBtnText" value="#0c1117" />
-            </label>
-            <label>Button radius
-              <input type="range" id="varBtnRadius" min="0" max="28" value="12" />
-            </label>
-            <label>Base font
-              <select id="varFont">
-                <option value="system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Segoe UI Variable', 'Noto Sans', 'Liberation Sans', sans-serif">System Sans</option>
-                <option value="Georgia, 'Times New Roman', Times, serif">Serif</option>
-                <option value="ui-monospace, Menlo, Monaco, Consolas, 'Courier New', monospace">Monospace</option>
-              </select>
-            </label>
-            <label>Font size
-              <input type="range" id="varFontSize" min="14" max="22" value="16" />
-            </label>
-          </div>
-          <div class="row" style="margin-top:8px">
-            <button class="btn small" id="btnSaveTheme" title="Save theme">Save</button>
-            <button class="btn secondary small" id="btnResetTheme" title="Reset theme to defaults">Reset</button>
-            <button class="btn ghost small" id="btnExport" title="Export settings">Export</button>
-            <button class="btn ghost small" id="btnImport" title="Import settings">Import</button>
-          </div>
-        </details>
       </nav>
     </div>
   </header>
