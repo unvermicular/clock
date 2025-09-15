@@ -1,6 +1,6 @@
 // Utilities
-const $ = (sel, root = document) => root.querySelector(sel);
-const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+const $ = (sel, root=document) => root.querySelector(sel);
+const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 const clamp = (x, min, max) => Math.min(max, Math.max(min, x));
 
 // Local storage helpers
@@ -9,18 +9,14 @@ const store = {
     try {
       const raw = localStorage.getItem(key);
       return raw ? JSON.parse(raw) : fallback;
-    } catch {
-      return fallback;
-    }
+    } catch { return fallback; }
   },
   set(key, value) {
-    try {
-      localStorage.setItem(key, JSON.stringify(value));
-    } catch {}
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
   }
 };
 
-// Theme keys & defaults
+// Theme
 const THEME_KEY = "tfs_theme_vars";
 const MODE_KEY = "tfs_theme_mode";
 
@@ -33,11 +29,9 @@ const defaultLight = {
   btnBg: "#2f6bff",
   btnText: "#ffffff",
   btnRadius: 12,
-  font:
-    "system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Segoe UI Variable', 'Noto Sans', 'Liberation Sans', sans-serif",
+  font: "system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Segoe UI Variable', 'Noto Sans', 'Liberation Sans', sans-serif",
   fontSize: 16
 };
-
 const defaultDark = {
   bg: "#0b0f15",
   text: "#e8eef9",
@@ -47,21 +41,18 @@ const defaultDark = {
   btnBg: "#6aa0ff",
   btnText: "#0c1117",
   btnRadius: 12,
-  font:
-    "system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Segoe UI Variable', 'Noto Sans', 'Liberation Sans', sans-serif",
+  font: "system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Segoe UI Variable', 'Noto Sans', 'Liberation Sans', sans-serif",
   fontSize: 16
 };
 
-// --- Theme functions ---
 function setMode(mode) {
   document.body.setAttribute("data-theme", mode);
   store.set(MODE_KEY, mode);
-
+  // Update segmented control
   $("#btnLight").classList.toggle("active", mode === "light");
   $("#btnDark").classList.toggle("active", mode === "dark");
   $("#btnLight").setAttribute("aria-selected", mode === "light");
   $("#btnDark").setAttribute("aria-selected", mode === "dark");
-
   // If no custom vars saved, set inputs to defaults for the mode
   const vars = store.get(THEME_KEY, null);
   if (!vars) {
@@ -117,28 +108,23 @@ function reflectThemeInputs(v) {
   $("#varFontSize").value = v.fontSize;
 }
 
-// --- Color helpers & contrast ---
 function hexToRgb(hex) {
   hex = hex.replace("#", "");
-  if (hex.length === 3) hex = hex.split("").map((c) => c + c).join("");
+  if (hex.length === 3) hex = hex.split("").map(c => c + c).join("");
   const n = parseInt(hex, 16);
   return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
 }
-
-function relativeLuminance({ r, g, b }) {
+function relativeLuminance({r,g,b}) {
   // sRGB to linear
-  const srgb = [r, g, b]
-    .map((v) => v / 255)
-    .map((v) => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)));
-  return 0.2126 * srgb[0] + 0.7152 * srgb[1] + 0.0722 * srgb[2];
+  const srgb = [r,g,b].map(v => v/255).map(v => v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4));
+  return 0.2126*srgb[0] + 0.7152*srgb[1] + 0.0722*srgb[2];
 }
-
 function ensureButtonContrast() {
   // If contrast between btn-bg and btn-text is too low, auto-pick black/white text
   const bg = getComputedStyle(document.documentElement).getPropertyValue("--btn-bg").trim();
   const txt = getComputedStyle(document.documentElement).getPropertyValue("--btn-text").trim();
-  const bgRGB = hexToRgb(bg.startsWith("#") ? bg : "#6aa0ff");
-  const txtRGB = hexToRgb(txt.startsWith("#") ? txt : "#000000");
+  let bgRGB = hexToRgb(bg.startsWith("#") ? bg : "#6aa0ff");
+  let txtRGB = hexToRgb(txt.startsWith("#") ? txt : "#000000");
   const L1 = Math.max(relativeLuminance(bgRGB), relativeLuminance(txtRGB));
   const L2 = Math.min(relativeLuminance(bgRGB), relativeLuminance(txtRGB));
   const contrast = (L1 + 0.05) / (L2 + 0.05);
@@ -150,35 +136,24 @@ function ensureButtonContrast() {
   }
 }
 
-// --- Theme UI bindings ---
 $("#btnLight").addEventListener("click", () => setMode("light"));
 $("#btnDark").addEventListener("click", () => setMode("dark"));
 
-[
-  "varAccent",
-  "varBg",
-  "varCard",
-  "varText",
-  "varMuted",
-  "varBtnBg",
-  "varBtnText",
-  "varBtnRadius",
-  "varFont",
-  "varFontSize"
-].forEach((id) => {
-  const el = $("#" + id);
-  el.addEventListener("input", () => {
-    const v = readThemeInputs();
-    applyThemeVars(v);
+// Live theme binding
+["varAccent","varBg","varCard","varText","varMuted","varBtnBg","varBtnText","varBtnRadius","varFont","varFontSize"]
+  .forEach(id => {
+    const el = $("#"+id);
+    el.addEventListener("input", () => {
+      const v = readThemeInputs();
+      applyThemeVars(v);
+    });
   });
-});
 
 $("#btnSaveTheme").addEventListener("click", () => {
   store.set(THEME_KEY, readThemeInputs());
   ensureButtonContrast();
   flashStatus("Theme saved");
 });
-
 $("#btnResetTheme").addEventListener("click", () => {
   const mode = store.get(MODE_KEY, "dark");
   const d = mode === "light" ? defaultLight : defaultDark;
@@ -188,7 +163,26 @@ $("#btnResetTheme").addEventListener("click", () => {
   flashStatus("Theme reset");
 });
 
-// --- Import / Export ---
+// Export/Import settings (theme + clocks + pomodoro + quotes)
+$("#btnExport").addEventListener("click", () => {
+  const payload = {
+    mode: store.get(MODE_KEY, "dark"),
+    theme: store.get(THEME_KEY, null),
+    clocks: store.get("tfs_clock_settings", null),
+    pomodoro: store.get("tfs_pomodoro_settings", null),
+    quotes: store.get("tfs_user_quotes", [])
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type: "application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "time-focus-studio-settings.json";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+});
+
 $("#btnImport").addEventListener("click", async () => {
   const input = document.createElement("input");
   input.type = "file";
@@ -204,7 +198,6 @@ $("#btnImport").addEventListener("click", async () => {
       if (data.clocks) store.set("tfs_clock_settings", data.clocks);
       if (data.pomodoro) store.set("tfs_pomodoro_settings", data.pomodoro);
       if (Array.isArray(data.quotes)) store.set("tfs_user_quotes", data.quotes);
-
       // Apply everything:
       setMode(store.get(MODE_KEY, "dark"));
       loadClockSettings();
@@ -218,7 +211,6 @@ $("#btnImport").addEventListener("click", async () => {
   input.click();
 });
 
-// --- UI helpers ---
 function flashStatus(text) {
   const pill = document.createElement("div");
   pill.textContent = text;
@@ -237,10 +229,10 @@ function flashStatus(text) {
   setTimeout(() => pill.remove(), 1800);
 }
 
-// --- Initial theme mode ---
+// Initial theme mode
 setMode(store.get(MODE_KEY, "dark"));
 
-// --- Clock logic ---
+// Clock logic
 const CLOCK_KEY = "tfs_clock_settings";
 const clockDefaults = {
   tzSource: "local",
@@ -262,15 +254,13 @@ let clockSettings = loadClockSettings();
 
 function loadClockSettings() {
   const saved = store.get(CLOCK_KEY, {});
-  const merged = { ...clockDefaults, ...saved };
+  const merged = {...clockDefaults, ...saved};
   reflectClockInputs(merged);
   return merged;
 }
-
 function saveClockSettings() {
   store.set(CLOCK_KEY, clockSettings);
 }
-
 function reflectClockInputs(v) {
   $("#clockTzSource").value = v.tzSource;
   $("#clockTzOffset").value = v.tzOffset;
@@ -287,25 +277,12 @@ function reflectClockInputs(v) {
   $("#analogMinute").value = v.analogMinute;
   $("#analogSecond").value = v.analogSecond;
 }
-
-// Bind clock inputs
+// Bind inputs
 [
-  "clockTzSource",
-  "clockTzOffset",
-  "digitalFormat",
-  "digitalSeconds",
-  "digitalBlink",
-  "digitalShowDate",
-  "analogSeconds",
-  "analogSmooth",
-  "analogNumbers",
-  "analogFace",
-  "analogTicks",
-  "analogHour",
-  "analogMinute",
-  "analogSecond"
-].forEach((id) => {
-  $("#" + id).addEventListener("input", () => {
+  "clockTzSource","clockTzOffset","digitalFormat","digitalSeconds","digitalBlink","digitalShowDate",
+  "analogSeconds","analogSmooth","analogNumbers","analogFace","analogTicks","analogHour","analogMinute","analogSecond"
+].forEach(id => {
+  $("#"+id).addEventListener("input", () => {
     const v = clockSettings;
     v.tzSource = $("#clockTzSource").value;
     v.tzOffset = parseFloat($("#clockTzOffset").value);
@@ -334,43 +311,34 @@ function getNowWithOffset() {
   return new Date(now.getTime() + diff);
 }
 
-// --- Digital clock updater ---
+// Digital clock updater
 let blinkOn = true;
-
 function formatDigital(d) {
-  let H = d.getHours();
-  let M = d.getMinutes();
-  let S = d.getSeconds();
+  let H = d.getHours(), M = d.getMinutes(), S = d.getSeconds();
   let period = "";
   if (clockSettings.digitalFormat === "12") {
     period = H >= 12 ? " PM" : " AM";
-    H = H % 12;
-    if (H === 0) H = 12;
+    H = H % 12; if (H === 0) H = 12;
   }
-  const pad = (n) => String(n).padStart(2, "0");
+  const pad = n => String(n).padStart(2, "0");
   const colon = clockSettings.digitalBlink ? (blinkOn ? ":" : " ") : ":";
-  const time = clockSettings.digitalSeconds
-    ? `${pad(H)}${colon}${pad(M)}${colon}${pad(S)}${period}`
-    : `${pad(H)}${colon}${pad(M)}${period}`;
+  const time = clockSettings.digitalSeconds ? `${pad(H)}${colon}${pad(M)}${colon}${pad(S)}${period}` : `${pad(H)}${colon}${pad(M)}${period}`;
   return time;
 }
-
 function formatDateLine(d) {
   const opts = { weekday: "long", month: "short", day: "numeric" };
   return d.toLocaleDateString(undefined, opts);
 }
-
 function tickDigital() {
   const now = getNowWithOffset();
   blinkOn = !blinkOn;
   $("#digitalTime").textContent = formatDigital(now);
   $("#digitalDate").textContent = clockSettings.digitalShowDate ? formatDateLine(now) : "";
 }
-
 setInterval(tickDigital, 500);
 tickDigital();
 
-// --- Analog clock ---
+// Analog clock
 const analogCanvas = $("#analog");
 const ctx = analogCanvas.getContext("2d");
 
@@ -381,33 +349,27 @@ function resizeAnalog() {
   analogCanvas.height = Math.floor(rect.height * dpr);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
-
 new ResizeObserver(resizeAnalog).observe(analogCanvas);
 resizeAnalog();
 
 function drawAnalog() {
   const rect = analogCanvas.getBoundingClientRect();
-  const w = rect.width;
-  const h = rect.height;
+  const w = rect.width, h = rect.height;
   ctx.clearRect(0, 0, w, h);
 
   const r = Math.min(w, h) / 2 - 8;
-  const cx = w / 2;
-  const cy = h / 2;
+  const cx = w / 2, cy = h / 2;
 
   // Face
   ctx.save();
-
   // Face background
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, Math.PI * 2);
   ctx.fillStyle = clockSettings.analogFace;
   ctx.fill();
-
   // Bezel
   ctx.lineWidth = 2;
-  ctx.strokeStyle =
-    getComputedStyle(document.documentElement).getPropertyValue("--border").trim() || "#2a2a2a";
+  ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue("--border").trim() || "#2a2a2a";
   ctx.stroke();
 
   // Ticks
@@ -434,7 +396,7 @@ function drawAnalog() {
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     for (let n = 1; n <= 12; n++) {
-      const angle = (Math.PI * 2) * (n / 12) - Math.PI / 2;
+      const angle = (Math.PI * 2) * (n / 12) - Math.PI/2;
       const nr = r - 28;
       const nx = cx + Math.cos(angle) * nr;
       const ny = cy + Math.sin(angle) * nr;
@@ -442,16 +404,16 @@ function drawAnalog() {
     }
   }
 
-  // Time math
+  // Time
   const now = getNowWithOffset();
   const ms = now.getMilliseconds();
-  const secBase = now.getSeconds() + (clockSettings.analogSmooth ? ms / 1000 : 0);
-  const minBase = now.getMinutes() + secBase / 60;
-  const hourBase = (now.getHours() % 12) + minBase / 60;
+  const secBase = now.getSeconds() + (clockSettings.analogSmooth ? ms/1000 : 0);
+  const minBase = now.getMinutes() + secBase/60;
+  const hourBase = (now.getHours() % 12) + minBase/60;
 
-  const hourAngle = (Math.PI * 2) * (hourBase / 12) - Math.PI / 2;
-  const minAngle = (Math.PI * 2) * (minBase / 60) - Math.PI / 2;
-  const secAngle = (Math.PI * 2) * (secBase / 60) - Math.PI / 2;
+  const hourAngle = (Math.PI * 2) * (hourBase / 12) - Math.PI/2;
+  const minAngle = (Math.PI * 2) * (minBase / 60) - Math.PI/2;
+  const secAngle = (Math.PI * 2) * (secBase / 60) - Math.PI/2;
 
   // Hour hand
   ctx.lineCap = "round";
@@ -476,9 +438,8 @@ function drawAnalog() {
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(cx, cy);
-    ctx.lineTo(cx + Math.cos(secAngle) * (r * 0.8), cy + Math.sin(secAngle) * (r * 0.8));
+    ctx.lineTo(cx + Math.cos(secAngle) * (r * 0.80), cy + Math.sin(secAngle) * (r * 0.80));
     ctx.stroke();
-
     // Tail
     ctx.beginPath();
     ctx.moveTo(cx, cy);
@@ -495,34 +456,31 @@ function drawAnalog() {
   ctx.restore();
   requestAnimationFrame(drawAnalog);
 }
-
 requestAnimationFrame(drawAnalog);
 
-// --- Pomodoro ---
+// Pomodoro
 const POMO_KEY = "tfs_pomodoro_settings";
 const pomoDefaults = {
-  work: 25 * 60,
-  short: 5 * 60,
-  long: 15 * 60,
+  work: 25*60,
+  short: 5*60,
+  long: 15*60,
   rounds: 4,
   auto: true,
   sound: true,
   volume: 0.5
 };
-let pomoSettings = { ...pomoDefaults, ...store.get(POMO_KEY, {}) };
-
+let pomoSettings = {...pomoDefaults, ...store.get(POMO_KEY, {})};
 function loadPomodoroSettings() {
-  pomoSettings = { ...pomoDefaults, ...store.get(POMO_KEY, {}) };
-  $("#pWork").value = Math.round(pomoSettings.work / 60);
-  $("#pShort").value = Math.round(pomoSettings.short / 60);
-  $("#pLong").value = Math.round(pomoSettings.long / 60);
+  pomoSettings = {...pomoDefaults, ...store.get(POMO_KEY, {})};
+  $("#pWork").value = Math.round(pomoSettings.work/60);
+  $("#pShort").value = Math.round(pomoSettings.short/60);
+  $("#pLong").value = Math.round(pomoSettings.long/60);
   $("#pRounds").value = pomoSettings.rounds;
   $("#pAuto").value = String(pomoSettings.auto);
   $("#pSound").value = String(pomoSettings.sound);
   $("#pVolume").value = String(pomoSettings.volume);
   return pomoSettings;
 }
-
 loadPomodoroSettings();
 
 // Pomodoro state
@@ -536,25 +494,28 @@ let lastTick = null;
 
 function setPomoMode(mode) {
   pomoMode = mode;
-  pomoTotal = mode === "work" ? pomoSettings.work : mode === "short" ? pomoSettings.short : pomoSettings.long;
+  pomoTotal = mode === "work" ? pomoSettings.work : (mode === "short" ? pomoSettings.short : pomoSettings.long);
   pomoRemaining = pomoTotal;
   updatePomoUI();
 }
 
 function updatePomoUI() {
-  $("#pomoMode").textContent = ({ work: "Work", short: "Short Break", long: "Long Break" })[pomoMode];
+  $("#pomoMode").textContent = ({
+    work: "Work",
+    short: "Short Break",
+    long: "Long Break"
+  })[pomoMode];
   $("#pomoRound").textContent = `Round ${pomoRound}`;
   $("#pomoTime").textContent = formatSeconds(pomoRemaining);
   $("#pomoStatus").textContent = pomoRunning ? "Running" : "Paused";
-  const progress = 1 - pomoRemaining / pomoTotal;
+  const progress = 1 - (pomoRemaining / pomoTotal);
   $("#pomoRing").style.setProperty("--p", (progress * 100).toFixed(2));
 }
 
 function formatSeconds(s) {
   s = Math.max(0, Math.floor(s));
-  const m = Math.floor(s / 60);
-  const sec = s % 60;
-  return String(m).padStart(2, "0") + ":" + String(sec).padStart(2, "0");
+  const m = Math.floor(s/60), sec = s % 60;
+  return String(m).padStart(2,"0") + ":" + String(sec).padStart(2,"0");
 }
 
 function startPomo() {
@@ -602,7 +563,6 @@ function stepPomo(ts) {
 function completeSession() {
   pausePomo();
   signalEnd();
-
   // Advance cycle
   if (pomoMode === "work") {
     if (pomoRound % pomoSettings.rounds === 0) {
@@ -615,7 +575,6 @@ function completeSession() {
     pomoRound += 1;
     setPomoMode("work");
   }
-
   updatePomoUI();
   if (pomoSettings.auto) {
     setTimeout(startPomo, 400);
@@ -627,18 +586,19 @@ function signalEnd() {
   if (pomoSettings.sound) {
     beepPattern(pomoSettings.volume);
   }
-
   // Desktop notification
   if (Notification && Notification.permission === "granted") {
     const title = pomoMode === "work" ? "Break time!" : "Back to work!";
-    const body = pomoMode === "work" ? "Great job. Take a breather." : "Let\u2019s focus for the next session.";
+    const body = pomoMode === "work"
+      ? "Great job. Take a breather."
+      : "Let’s focus for the next session.";
     try {
       new Notification(title, { body });
     } catch {}
   }
 }
 
-function beepPattern(vol = 0.5) {
+function beepPattern(vol=0.5) {
   const ctx = new (window.AudioContext || window.webkitAudioContext)();
   const play = (t, freq, dur) => {
     const o = ctx.createOscillator();
@@ -651,66 +611,53 @@ function beepPattern(vol = 0.5) {
     o.start(ctx.currentTime + t);
     o.stop(ctx.currentTime + t + dur);
   };
-  play(0.0, 880, 0.12);
-  play(0.17, 660, 0.1);
-  play(0.3, 990, 0.14);
+  play(0.00, 880, 0.12);
+  play(0.17, 660, 0.10);
+  play(0.30, 990, 0.14);
   setTimeout(() => ctx.close(), 1200);
 }
 
-// --- Pomodoro controls & keybinds ---
+// Bind Pomodoro controls
 $("#pomoStart").addEventListener("click", startPomo);
 $("#pomoPause").addEventListener("click", pausePomo);
 $("#pomoReset").addEventListener("click", resetPomo);
 $("#pomoSkip").addEventListener("click", skipPomo);
-
 // Keyboard: Space toggles start/pause
 window.addEventListener("keydown", (e) => {
   if (e.code === "Space" && !e.repeat) {
     e.preventDefault();
-    if (pomoRunning) pausePomo();
-    else startPomo();
+    if (pomoRunning) pausePomo(); else startPomo();
   }
 });
-
-// --- Pomodoro settings bindings ---
+// Settings
 $("#pWork").addEventListener("input", () => {
-  pomoSettings.work = clamp(parseInt($("#pWork").value, 10) * 60, 60, 60 * 180);
-  store.set(POMO_KEY, pomoSettings);
-  if (pomoMode === "work") resetPomo();
+  pomoSettings.work = clamp(parseInt($("#pWork").value, 10)*60, 60, 60*180);
+  store.set(POMO_KEY, pomoSettings); if (pomoMode==="work") resetPomo();
 });
-
 $("#pShort").addEventListener("input", () => {
-  pomoSettings.short = clamp(parseInt($("#pShort").value, 10) * 60, 60, 60 * 60);
-  store.set(POMO_KEY, pomoSettings);
-  if (pomoMode === "short") resetPomo();
+  pomoSettings.short = clamp(parseInt($("#pShort").value, 10)*60, 60, 60*60);
+  store.set(POMO_KEY, pomoSettings); if (pomoMode==="short") resetPomo();
 });
-
 $("#pLong").addEventListener("input", () => {
-  pomoSettings.long = clamp(parseInt($("#pLong").value, 10) * 60, 60, 60 * 120);
-  store.set(POMO_KEY, pomoSettings);
-  if (pomoMode === "long") resetPomo();
+  pomoSettings.long = clamp(parseInt($("#pLong").value, 10)*60, 60, 60*120);
+  store.set(POMO_KEY, pomoSettings); if (pomoMode==="long") resetPomo();
 });
-
 $("#pRounds").addEventListener("input", () => {
   pomoSettings.rounds = clamp(parseInt($("#pRounds").value, 10), 1, 12);
   store.set(POMO_KEY, pomoSettings);
 });
-
 $("#pAuto").addEventListener("input", () => {
   pomoSettings.auto = $("#pAuto").value === "true";
   store.set(POMO_KEY, pomoSettings);
 });
-
 $("#pSound").addEventListener("input", () => {
   pomoSettings.sound = $("#pSound").value === "true";
   store.set(POMO_KEY, pomoSettings);
 });
-
 $("#pVolume").addEventListener("input", () => {
   pomoSettings.volume = parseFloat($("#pVolume").value);
   store.set(POMO_KEY, pomoSettings);
 });
-
 $("#pNotify").addEventListener("click", async () => {
   try {
     if (!("Notification" in window)) {
@@ -723,10 +670,9 @@ $("#pNotify").addEventListener("click", async () => {
     flashStatus("Notification request failed");
   }
 });
-
 updatePomoUI();
 
-// --- Quotes generator ---
+// Motivational Texts (procedural, unlimited variations)
 const QUOTES_KEY = "tfs_user_quotes";
 const baseQuotes = [
   "Your story is what you have, what you will always have. It is something to own.",
@@ -740,101 +686,64 @@ const baseQuotes = [
   "Tiny improvements compound into remarkable results.",
   "Your pace is valid. Keep going."
 ];
-
 // Procedural components to generate unlimited combinations
 const fragments = {
   openers: [
-    "Your story",
-    "Your potential",
-    "Your journey",
-    "Your effort",
-    "Your growth",
-    "This moment",
-    "Today",
-    "Right now",
-    "The next step",
-    "The choice you make"
+    "Your story", "Your potential", "Your journey", "Your effort", "Your growth",
+    "This moment", "Today", "Right now", "The next step", "The choice you make"
   ],
-  verbs: ["defines", "shapes", "sets", "builds", "unlocks", "guides", "elevates", "anchors"],
+  verbs: [
+    "defines", "shapes", "sets", "builds", "unlocks", "guides", "elevates", "anchors"
+  ],
   nouns: [
-    "your future",
-    "your path",
-    "your momentum",
-    "your results",
-    "your craft",
-    "your confidence",
-    "your skill",
-    "your resilience"
+    "your future", "your path", "your momentum", "your results", "your craft",
+    "your confidence", "your skill", "your resilience"
   ],
   prompts: [
-    "own it",
-    "lean in",
-    "keep going",
-    "trust the process",
-    "show up",
-    "start small",
-    "begin again",
-    "focus on what matters",
-    "embrace the effort",
+    "own it", "lean in", "keep going", "trust the process", "show up",
+    "start small", "begin again", "focus on what matters", "embrace the effort",
     "take the next step"
   ],
   closers: [
-    "One hour at a time.",
-    "One step at a time.",
-    "Make it count.",
-    "You’ve got this.",
-    "Be proudly consistent.",
-    "Progress over perfection.",
-    "Let the work speak.",
-    "Little by little becomes a lot."
+    "One hour at a time.", "One step at a time.", "Make it count.",
+    "You’ve got this.", "Be proudly consistent.", "Progress over perfection.",
+    "Let the work speak.", "Little by little becomes a lot."
   ],
-  bridges: ["and", "because", "so", "therefore", "which means"],
+  bridges: [
+    "and", "because", "so", "therefore", "which means"
+  ],
   adjectives: [
-    "quiet",
-    "steady",
-    "deliberate",
-    "courageous",
-    "curious",
-    "bold",
-    "relentless",
-    "patient",
-    "hopeful",
-    "purposeful"
+    "quiet", "steady", "deliberate", "courageous", "curious", "bold",
+    "relentless", "patient", "hopeful", "purposeful"
   ],
   values: [
-    "clarity",
-    "focus",
-    "effort",
-    "consistency",
-    "attention",
-    "kindness",
-    "discipline",
-    "curiosity"
+    "clarity", "focus", "effort", "consistency", "attention",
+    "kindness", "discipline", "curiosity"
   ]
 };
 
 function mulberry32(a) {
-  return function () {
-    let t = (a += 0x6d2b79f5);
+  return function() {
+    let t = a += 0x6D2B79F5;
     t = Math.imul(t ^ (t >>> 15), t | 1);
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
+  }
 }
-
 function seededPick(rng, arr) {
   return arr[Math.floor(rng() * arr.length)];
 }
-
 function generateQuote(seed) {
   const rng = mulberry32(seed);
   // 30% chance to use a curated base quote
-  if (rng() < 0.3) return seededPick(rng, baseQuotes);
-
+  if (rng() < 0.30) {
+    return seededPick(rng, baseQuotes);
+  }
   // 15% chance to use user quotes if any
   const u = store.get(QUOTES_KEY, []);
-  if (u.length && rng() < 0.15) return seededPick(rng, u);
-
+  if (u.length && rng() < 0.15) {
+    return seededPick(rng, u);
+  }
   // Template-driven generation
   const A = seededPick(rng, fragments.openers);
   const B = seededPick(rng, fragments.verbs);
@@ -853,17 +762,14 @@ function generateQuote(seed) {
     `${A}. ${P}. ${Z}`,
     `${A} is yours—${P}. ${Z}`
   ];
-
   return seededPick(rng, templates);
 }
-
 function currentHourSeed() {
   const now = new Date();
   // Seed stable for the local hour
-  return now.getFullYear() * 1e6 + (now.getMonth() + 1) * 1e4 + now.getDate() * 1e2 + now.getHours();
+  return now.getFullYear()*1e6 + (now.getMonth()+1)*1e4 + now.getDate()*1e2 + now.getHours();
 }
-
-function updateQuoteByHour(force = false) {
+function updateQuoteByHour(force=false) {
   const hourSeed = currentHourSeed();
   const last = updateQuoteByHour._lastSeed;
   if (force || last !== hourSeed) {
@@ -872,12 +778,11 @@ function updateQuoteByHour(force = false) {
     updateQuoteByHour._lastSeed = hourSeed;
   }
 }
-
 updateQuoteByHour(true);
 // Check every minute to roll over at top of hour
-setInterval(() => updateQuoteByHour(false), 60 * 1000);
+setInterval(() => updateQuoteByHour(false), 60*1000);
 
-// --- Quotes UI ---
+// Quotes UI
 function renderUserQuotes() {
   const list = store.get(QUOTES_KEY, []);
   const wrap = $("#userQuotesWrap");
@@ -885,7 +790,6 @@ function renderUserQuotes() {
     wrap.innerHTML = "<em>No custom messages yet.</em>";
     return;
   }
-
   wrap.innerHTML = "";
   list.forEach((q, i) => {
     const row = document.createElement("div");
@@ -894,36 +798,31 @@ function renderUserQuotes() {
     row.style.justifyContent = "space-between";
     row.style.gap = "8px";
     row.style.padding = "6px 0";
-
     const span = document.createElement("span");
     span.style.color = "var(--text)";
     span.textContent = q;
-
     const del = document.createElement("button");
     del.className = "btn small secondary";
     del.textContent = "Remove";
     del.addEventListener("click", () => {
       const arr = store.get(QUOTES_KEY, []);
-      arr.splice(i, 1);
+      arr.splice(i,1);
       store.set(QUOTES_KEY, arr);
       renderUserQuotes();
       flashStatus("Removed");
     });
-
     row.appendChild(span);
     row.appendChild(del);
     wrap.appendChild(row);
   });
 }
-
 renderUserQuotes();
 
 $("#btnShuffle").addEventListener("click", () => {
   // Shuffle uses a random seed so user can explore
-  const seed = Math.floor(Math.random() * 1e9);
+  const seed = Math.floor(Math.random()*1e9);
   $("#quoteText").textContent = generateQuote(seed);
 });
-
 $("#btnCopy").addEventListener("click", async () => {
   try {
     await navigator.clipboard.writeText($("#quoteText").textContent.trim());
@@ -932,13 +831,11 @@ $("#btnCopy").addEventListener("click", async () => {
     flashStatus("Copy failed");
   }
 });
-
 $("#btnAddQuote").addEventListener("click", () => {
   const details = $("#motivation details");
   details.open = true;
   $("#newQuote").focus();
 });
-
 $("#saveQuote").addEventListener("click", () => {
   const val = $("#newQuote").value.trim();
   if (!val) return;
@@ -949,7 +846,6 @@ $("#saveQuote").addEventListener("click", () => {
   renderUserQuotes();
   flashStatus("Saved");
 });
-
 $("#clearQuotes").addEventListener("click", () => {
   if (confirm("Clear all your custom messages?")) {
     store.set(QUOTES_KEY, []);
@@ -958,8 +854,16 @@ $("#clearQuotes").addEventListener("click", () => {
   }
 });
 
-// --- Misc init ---
+// Enhance accessibility: announce time every minute (optional)
+// Commented out by default; uncomment for screen-reader periodic updates.
+// setInterval(() => { $("#digitalTime").setAttribute("aria-live", "polite"); }, 60*1000);
+
+// On load, ensure UI reflects storage
 function initOnLoad() {
+  // Theme already initialized
+  // Clocks reflect settings continually via intervals/RAF
+
+  // Ensure date visibility toggles the element spacing
   const dateEl = $("#digitalDate");
   const observer = new MutationObserver(() => {
     dateEl.style.display = clockSettings.digitalShowDate ? "block" : "none";
@@ -968,16 +872,14 @@ function initOnLoad() {
 
   // Ensure analog canvas starts drawing on first frame (already done)
 }
-
 initOnLoad();
 
 // Resize ring size slightly on small screens
 function adaptRingSize() {
   const ring = $("#pomoRing");
   const w = window.innerWidth;
-  const size = w < 420 ? 200 : w < 360 ? 180 : 220;
+  const size = w < 420 ? 200 : (w < 360 ? 180 : 220);
   ring.style.setProperty("--size", size + "px");
 }
-
 window.addEventListener("resize", adaptRingSize);
 adaptRingSize();
