@@ -1,1187 +1,283 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Clocks, Pomodoro, and Hourly Motivation</title>
-  <style>
-    /* ---------------------- CSS VARIABLES (THEME) ---------------------- */
-    :root {
-      --bg: #0b0d10;
-      --bg-elev: #12161b;
-      --text: #e9eef5;
-      --muted: #a7b0be;
-      --primary: #6ea8fe;
-      --accent: #7ae0b8;
-      --danger: #ff6b6b;
-      --ok: #53df7f;
-      --warning: #f7c948;
-
-      --card-border: rgba(255,255,255,0.06);
-
-      --btn-radius: 12px;
-
-      --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
-      --font-serif: Georgia, "Times New Roman", Times, serif;
-      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-
-      --body-font: var(--font-sans);
-      --heading-font: var(--font-sans);
-
-      --shadow-sm: 0 1px 2px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.04);
-      --shadow-md: 0 6px 24px rgba(0,0,0,0.25), 0 1px 2px rgba(0,0,0,0.16);
-      --shadow-lg: 0 18px 60px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.22);
-
-      --ring: 0 0 0 2px rgba(255,255,255,0), 0 0 0 4px rgba(110,168,254,0);
-    }
-
-    .theme-light {
-      --bg: #f7fafc;
-      --bg-elev: #ffffff;
-      --text: #23272f;
-      --muted: #5b6472;
-      --card-border: rgba(0,0,0,0.07);
-      --ring: 0 0 0 2px rgba(0,0,0,0), 0 0 0 6px rgba(110,168,254,0.25);
-    }
-    .theme-dark {
-      --bg: #0b0d10;
-      --bg-elev: #12161b;
-      --text: #e9eef5;
-      --muted: #a7b0be;
-      --card-border: rgba(255,255,255,0.06);
-      --ring: 0 0 0 2px rgba(255,255,255,0), 0 0 0 6px rgba(110,168,254,0.25);
-    }
-
-    /* ---------------------- BASE / LAYOUT ---------------------- */
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
-    body {
-      margin: 0;
-      font-family: var(--body-font);
-      color: var(--text);
-      background: radial-gradient(1200px 800px at 20% -10%, rgba(110,168,254,0.12), transparent 50%),
-                  radial-gradient(1000px 600px at 120% 10%, rgba(122,224,184,0.12), transparent 50%),
-                  var(--bg);
-      line-height: 1.5;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      transition: background 300ms ease, color 300ms ease;
-    }
-
-    header {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      backdrop-filter: saturate(160%) blur(10px);
-      background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0)) ;
-    }
-
-    .container {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 16px;
-    }
-
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 10px 0;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-family: var(--heading-font);
-      font-weight: 700;
-      font-size: 22px;
-      letter-spacing: 0.2px;
-    }
-    .brand .dot {
-      width: 12px; height: 12px; border-radius: 50%;
-      background: conic-gradient(from 180deg, var(--primary), var(--accent));
-      box-shadow: 0 0 0 4px rgba(110,168,254,0.15);
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 16px;
-    }
-    @media (min-width: 900px) {
-      .grid {
-        grid-template-columns: 1.1fr 0.9fr;
-      }
-    }
-
-    section.card {
-      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0)) , var(--bg-elev);
-      border: 1px solid var(--card-border);
-      border-radius: 16px;
-      box-shadow: var(--shadow-sm);
-      padding: 16px;
-    }
-    section.card h2 {
-      margin: 0 0 10px 0;
-      font-family: var(--heading-font);
-      font-size: 18px;
-      letter-spacing: 0.2px;
-    }
-    .subtle {
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    /* ---------------------- CONTROLS / BUTTONS ---------------------- */
-    .controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
-    }
-    .row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      align-items: center;
-    }
-    .spacer { flex: 1; }
-
-    .btn {
-      --_bg: color-mix(in oklab, var(--primary) 85%, black 0%);
-      --_bg2: color-mix(in oklab, var(--accent) 85%, black 0%);
-      background: linear-gradient(135deg, var(--_bg), var(--_bg2));
-      color: #0b1117;
-      font-weight: 700;
-      border: 0;
-      padding: 10px 14px;
-      border-radius: var(--btn-radius);
-      cursor: pointer;
-      transition: transform 120ms ease, box-shadow 120ms ease, opacity 120ms;
-      box-shadow: 0 6px 20px color-mix(in oklab, var(--_bg) 30%, black 70%);
-    }
-    .btn:hover { transform: translateY(-1px); }
-    .btn:active { transform: translateY(0); }
-    .btn.ghost {
-      background: transparent;
-      color: var(--text);
-      border: 1px solid var(--card-border);
-      box-shadow: none;
-    }
-    .btn.warn {
-      background: linear-gradient(135deg, var(--warning), color-mix(in oklab, var(--warning) 60%, black 20%));
-      color: #262626;
-    }
-    .btn.danger {
-      background: linear-gradient(135deg, var(--danger), color-mix(in oklab, var(--danger) 60%, black 25%));
-      color: #fff;
-    }
-    .btn.ok {
-      background: linear-gradient(135deg, var(--ok), color-mix(in oklab, var(--ok) 60%, black 15%));
-      color: #072a17;
-    }
-
-    label { font-size: 13px; color: var(--muted); }
-    .field {
-      display: grid;
-      gap: 4px;
-      min-width: 160px;
-    }
-    input[type="color"], input[type="number"], input[type="range"], select, input[type="checkbox"] {
-      appearance: none;
-      background: var(--bg-elev);
-      color: var(--text);
-      border: 1px solid var(--card-border);
-      border-radius: 10px;
-      padding: 8px 10px;
-      box-shadow: var(--shadow-sm);
-      outline: none;
-      transition: box-shadow 120ms ease, border-color 120ms ease, background 120ms ease;
-    }
-    input[type="range"] {
-      padding: 0;
-      height: 32px;
-    }
-    input[type="color"] {
-      padding: 0;
-      width: 44px;
-      height: 32px;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    input:focus, select:focus {
-      box-shadow: var(--ring);
-      border-color: color-mix(in oklab, var(--primary) 70%, transparent 30%);
-    }
-
-    .settings-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 12px;
-      margin-top: 10px;
-    }
-
-    /* ---------------------- CLOCKS ---------------------- */
-    .clocks {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 12px;
-    }
-    @media (min-width: 700px) {
-      .clocks {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-    .clock-card {
-      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0)) , var(--bg-elev);
-      border: 1px solid var(--card-border);
-      border-radius: 16px;
-      padding: 14px;
-      box-shadow: var(--shadow-sm);
-      min-height: 220px;
-      display: grid;
-      align-items: center;
-      justify-items: center;
-    }
-
-    /* Analog clock */
-    .analog-wrap {
-      width: min(320px, 85vw);
-      aspect-ratio: 1;
-      position: relative;
-      border-radius: 50%;
-      background:
-        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.05), transparent 40%),
-        radial-gradient(circle at 50% 50%, var(--bg-elev) 0%, var(--bg) 75%);
-      border: 1px solid var(--card-border);
-      box-shadow: inset 0 0 0 2px rgba(255,255,255,0.02), var(--shadow-md);
-    }
-    .tick { position: absolute; left: 50%; top: 50%; transform-origin: 0 0; }
-    .tick .bar {
-      transform: translateX(-50%);
-      background: color-mix(in oklab, var(--text) 70%, transparent 30%);
-      border-radius: 2px;
-    }
-    .tick.hour .bar { width: 3px; height: 12px; }
-    .tick.min .bar  { width: 2px; height: 8px; opacity: 0.6; }
-
-    .hand {
-      position: absolute; left: 50%; top: 50%;
-      transform-origin: 50% 100%;
-      translate: -50% -100%;
-      filter: drop-shadow(0 1px 1px rgba(0,0,0,0.25));
-    }
-    .hand.hour-hand {
-      width: 6px; height: 26%;
-      background: color-mix(in oklab, var(--text) 70%, black 15%);
-      border-radius: 6px;
-    }
-    .hand.minute-hand {
-      width: 4px; height: 34%;
-      background: color-mix(in oklab, var(--primary) 85%, black 10%);
-      border-radius: 6px;
-    }
-    .hand.second-hand {
-      width: 2px; height: 38%;
-      background: color-mix(in oklab, var(--accent) 90%, black 5%);
-      border-radius: 6px;
-    }
-    .center-cap {
-      position: absolute; left: 50%; top: 50%;
-      width: 12px; height: 12px; border-radius: 50%;
-      translate: -50% -50%;
-      background: radial-gradient(circle at 35% 35%, #fff, #ddd 30%, #999 70%, #333);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.35), inset 0 0 0 2px rgba(0,0,0,0.2);
-    }
-
-    /* Digital clock */
-    .digital-wrap {
-      text-align: center;
-      width: 100%;
-    }
-    .digital-time {
-      font-family: var(--font-mono);
-      font-size: clamp(26px, 7vw, 46px);
-      letter-spacing: 1px;
-      font-weight: 800;
-      background: linear-gradient(180deg, var(--text), color-mix(in oklab, var(--text) 70%, transparent 30%));
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-    .digital-date { color: var(--muted); font-size: 14px; }
-
-    .clock-controls {
-      display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: center;
-      margin-top: 8px;
-    }
-
-    /* ---------------------- POMODORO ---------------------- */
-    .pomodoro {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 12px;
-      align-items: center;
-      justify-items: center;
-      text-align: center;
-    }
-    .ring {
-      --size: min(300px, 80vw);
-      --thickness: 16px;
-      width: var(--size);
-      height: var(--size);
-      border-radius: 50%;
-      background:
-        conic-gradient(var(--primary) var(--deg, 0deg), rgba(127,127,127,0.15) 0deg),
-        radial-gradient(circle at 50% 50%, var(--bg-elev) calc(50% - var(--thickness)), transparent calc(50% - var(--thickness) + 1px));
-      display: grid;
-      place-items: center;
-      box-shadow: var(--shadow-md);
-      border: 1px solid var(--card-border);
-      position: relative;
-    }
-    .ring .inner {
-      width: calc(var(--size) - var(--thickness) * 2.2);
-      height: calc(var(--size) - var(--thickness) * 2.2);
-      border-radius: 50%;
-      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0)), var(--bg-elev);
-      display: grid;
-      place-items: center;
-      border: 1px solid var(--card-border);
-    }
-    .pomo-time {
-      font-family: var(--font-mono);
-      font-size: clamp(28px, 8vw, 48px);
-      font-weight: 800;
-    }
-    .pomo-state {
-      margin-top: 6px;
-      font-size: 13px;
-      color: var(--muted);
-      letter-spacing: 0.3px;
-      text-transform: uppercase;
-    }
-    .pomo-controls, .pomo-settings {
-      display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; align-items: center;
-    }
-    .pomo-settings .field { min-width: 120px; }
-    .badge {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 6px 10px; border-radius: 999px;
-      border: 1px solid var(--card-border);
-      background: color-mix(in oklab, var(--bg-elev) 85%, black 0%);
-      font-size: 12px; color: var(--muted);
-    }
-
-    /* ---------------------- MOTIVATION ---------------------- */
-    .quote-wrap {
-      display: grid;
-      gap: 10px;
-    }
-    .quote {
-      font-size: clamp(16px, 3.8vw, 22px);
-      line-height: 1.4;
-      font-family: var(--heading-font);
-    }
-    .quote-controls {
-      display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
-    }
-    .countdown {
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    /* ---------------------- FOOTER ---------------------- */
-    footer {
-      padding: 20px 0 40px;
-      text-align: center;
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    /* Utility */
-    .hidden { display: none !important; }
-    .divider {
-      height: 1px; background: var(--card-border); margin: 8px 0;
-    }
-  </style>
-</head>
-<body class="theme-dark">
-  <header>
-    <div class="container topbar">
-      <div class="brand">
-        <span class="dot" aria-hidden="true"></span>
-        Clocks, Pomodoro, and Motivation
-      </div>
-      <div class="controls">
-        <div class="row">
-          <button class="btn ghost" id="toggleSettings" aria-expanded="false" aria-controls="settingsPanel">Customize</button>
-        </div>
-        <div class="row" role="group" aria-label="Theme mode">
-          <button class="btn" id="lightModeBtn" title="Light mode">Light</button>
-          <button class="btn ghost" id="darkModeBtn" title="Dark mode">Dark</button>
-        </div>
-      </div>
-    </div>
-    <div id="settingsPanel" class="container card hidden" role="region" aria-label="Customization panel">
-      <div class="row" style="justify-content: space-between; align-items: baseline;">
-        <h2>Theme & UI customization</h2>
-        <button class="btn ghost" id="resetTheme">Reset</button>
-      </div>
-      <div class="settings-grid">
-        <div class="field">
-          <label for="primaryColor">Primary color</label>
-          <input type="color" id="primaryColor" value="#6ea8fe" />
-        </div>
-        <div class="field">
-          <label for="accentColor">Accent color</label>
-          <input type="color" id="accentColor" value="#7ae0b8" />
-        </div>
-        <div class="field">
-          <label for="btnRadius">Button radius</label>
-          <input type="range" id="btnRadius" min="0" max="24" value="12" />
-        </div>
-        <div class="field">
-          <label for="bodyFont">Body font</label>
-          <select id="bodyFont">
-            <option value="sans">Sans (UI)</option>
-            <option value="serif">Serif</option>
-            <option value="mono">Monospace</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="headingFont">Heading font</label>
-          <select id="headingFont">
-            <option value="sans">Sans (UI)</option>
-            <option value="serif">Serif</option>
-            <option value="mono">Monospace</option>
-          </select>
-        </div>
-      </div>
-      <div class="divider"></div>
-      <div class="row" style="gap: 16px;">
-        <div class="field">
-          <label for="clockMode">Clock display</label>
-          <select id="clockMode">
-            <option value="both">Both</option>
-            <option value="analog">Analog only</option>
-            <option value="digital">Digital only</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="is12h">Digital format</label>
-          <select id="is12h">
-            <option value="false">24-hour</option>
-            <option value="true">12-hour</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="smoothSeconds">Analog seconds</label>
-          <select id="smoothSeconds">
-            <option value="true">Smooth</option>
-            <option value="false">Tick</option>
-          </select>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <main class="container">
-    <div class="grid">
-      <section class="card" aria-label="Clocks">
-        <h2>Clocks</h2>
-        <p class="subtle">Switch between analog and digital views, or show both.</p>
-        <div class="clocks" id="clocksGrid">
-          <!-- Analog -->
-          <div class="clock-card" id="analogCard" aria-live="off">
-            <div class="analog-wrap" id="analogClock" aria-label="Analog clock">
-              <!-- ticks populated by JS -->
-              <div class="hand hour-hand" id="hourHand" aria-hidden="true"></div>
-              <div class="hand minute-hand" id="minuteHand" aria-hidden="true"></div>
-              <div class="hand second-hand" id="secondHand" aria-hidden="true"></div>
-              <div class="center-cap" aria-hidden="true"></div>
-            </div>
-          </div>
-
-          <!-- Digital -->
-          <div class="clock-card" id="digitalCard">
-            <div class="digital-wrap">
-              <div class="digital-time" id="digitalTime" aria-live="polite">--:--:--</div>
-              <div class="digital-date" id="digitalDate">Loading date…</div>
-              <div class="clock-controls">
-                <span class="badge">
-                  <label for="formatToggle">Format</label>
-                  <select id="formatToggle" aria-label="Digital format">
-                    <option value="false">24-hour</option>
-                    <option value="true">12-hour</option>
-                  </select>
-                </span>
-                <span class="badge">
-                  <label for="clockModeInline">Display</label>
-                  <select id="clockModeInline" aria-label="Clock display">
-                    <option value="both">Both</option>
-                    <option value="analog">Analog only</option>
-                    <option value="digital">Digital only</option>
-                  </select>
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="card" aria-label="Pomodoro timer">
-        <h2>Pomodoro</h2>
-        <div class="pomodoro">
-          <div class="ring" id="pomoRing" style="--deg: 0deg;">
-            <div class="inner">
-              <div>
-                <div class="pomo-time" id="pomoTime">25:00</div>
-                <div class="pomo-state" id="pomoState">Focus</div>
-              </div>
-            </div>
-          </div>
-          <div class="pomo-controls">
-            <button class="btn ok" id="pomoStart">Start</button>
-            <button class="btn warn" id="pomoPause">Pause</button>
-            <button class="btn danger" id="pomoReset">Reset</button>
-            <span class="badge" title="Start next session automatically">
-              <label for="pomoAuto">Auto-next</label>
-              <input type="checkbox" id="pomoAuto" />
-            </span>
-          </div>
-          <div class="pomo-settings">
-            <div class="field">
-              <label for="focusMin">Focus (min)</label>
-              <input type="number" id="focusMin" min="1" max="120" value="25" />
-            </div>
-            <div class="field">
-              <label for="shortMin">Short break (min)</label>
-              <input type="number" id="shortMin" min="1" max="60" value="5" />
-            </div>
-            <div class="field">
-              <label for="longMin">Long break (min)</label>
-              <input type="number" id="longMin" min="1" max="60" value="15" />
-            </div>
-            <div class="field">
-              <label for="longEvery">Long break every</label>
-              <input type="number" id="longEvery" min="2" max="12" value="4" />
-            </div>
-          </div>
-          <div class="row" style="justify-content:center;">
-            <span class="badge" id="pomoStats">Sessions: 0 • Completed focus: 0</span>
-          </div>
-        </div>
-      </section>
-    </div>
-
-    <section class="card" aria-label="Hourly Motivation">
-      <h2>Hourly Motivation</h2>
-      <p class="subtle">A fresh, original line every hour—algorithmically generated so it never runs out.</p>
-      <div class="quote-wrap">
-        <div class="quote" id="quoteText">
-          Loading your hourly motivation…
-        </div>
-        <div class="quote-controls">
-          <button class="btn" id="nextQuote">New line</button>
-          <span class="countdown" id="quoteCountdown">Next refresh at the top of the hour.</span>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer>
-    Built with pure HTML, CSS, and JavaScript. No system theme used—toggle light/dark above.
-  </footer>
-
-  <script>
-    /* ---------------------- UTILITIES ---------------------- */
-    const $ = (sel, root = document) => root.querySelector(sel);
-    const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
-    const LS = {
-      get(k, d=null){ try { const v = localStorage.getItem(k); return v===null? d : JSON.parse(v); } catch { return d; } },
-      set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
-      del(k){ try { localStorage.removeItem(k); } catch {} }
-    };
-
-    const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
-    function fmt2(n){ return n.toString().padStart(2, '0'); }
-
-    /* ---------------------- THEME & SETTINGS ---------------------- */
-    const themeDefaults = {
-      mode: "dark",
-      primary: "#6ea8fe",
-      accent: "#7ae0b8",
-      btnRadius: 12,
-      bodyFont: "sans",
-      headingFont: "sans",
-      clockMode: "both",
-      is12h: false,
-      smoothSeconds: true
-    };
-
-    const state = {
-      theme: LS.get("theme", themeDefaults),
-      pomo: LS.get("pomo", {
-        focusMin: 25, shortMin: 5, longMin: 15, longEvery: 4, autoNext: false,
-        sessions: 0, completed: 0
-      }),
-      quote: LS.get("quote", { hourKey: null, text: "" })
-    };
-
-    function applyTheme() {
-      const root = document.body;
-      root.classList.remove("theme-light", "theme-dark");
-      root.classList.add(state.theme.mode === "light" ? "theme-light" : "theme-dark");
-      document.documentElement.style.setProperty("--primary", state.theme.primary);
-      document.documentElement.style.setProperty("--accent", state.theme.accent);
-      document.documentElement.style.setProperty("--btn-radius", state.theme.btnRadius + "px");
-
-      const bodyMap = { sans: "var(--font-sans)", serif: "var(--font-serif)", mono: "var(--font-mono)" };
-      const headMap = { sans: "var(--font-sans)", serif: "var(--font-serif)", mono: "var(--font-mono)" };
-      document.documentElement.style.setProperty("--body-font", bodyMap[state.theme.bodyFont] || "var(--font-sans)");
-      document.documentElement.style.setProperty("--heading-font", headMap[state.theme.headingFont] || "var(--font-sans)");
-
-      // Sync controls
-      $("#primaryColor").value = state.theme.primary;
-      $("#accentColor").value = state.theme.accent;
-      $("#btnRadius").value = state.theme.btnRadius;
-      $("#bodyFont").value = state.theme.bodyFont;
-      $("#headingFont").value = state.theme.headingFont;
-      $("#clockMode").value = state.theme.clockMode;
-      $("#clockModeInline").value = state.theme.clockMode;
-      $("#is12h").value = String(state.theme.is12h);
-      $("#formatToggle").value = String(state.theme.is12h);
-      $("#smoothSeconds").value = String(state.theme.smoothSeconds);
-
-      applyClockMode();
-    }
-
-    // Settings panel toggle
-    const settingsPanel = $("#settingsPanel");
-    $("#toggleSettings").addEventListener("click", () => {
-      const nowHidden = !settingsPanel.classList.toggle("hidden");
-      $("#toggleSettings").setAttribute("aria-expanded", String(!nowHidden));
-    });
-
-    // Theme buttons
-    $("#lightModeBtn").addEventListener("click", () => {
-      state.theme.mode = "light";
-      LS.set("theme", state.theme);
-      applyTheme();
-      swapModeButtons();
-    });
-    $("#darkModeBtn").addEventListener("click", () => {
-      state.theme.mode = "dark";
-      LS.set("theme", state.theme);
-      applyTheme();
-      swapModeButtons();
-    });
-
-    function swapModeButtons(){
-      const light = $("#lightModeBtn");
-      const dark = $("#darkModeBtn");
-      if (state.theme.mode === "light") {
-        light.classList.remove("ghost");
-        dark.classList.add("ghost");
-      } else {
-        dark.classList.remove("ghost");
-        light.classList.add("ghost");
-      }
-    }
-
-    // Theme controls
-    $("#primaryColor").addEventListener("input", e => {
-      state.theme.primary = e.target.value;
-      LS.set("theme", state.theme);
-      applyTheme();
-    });
-    $("#accentColor").addEventListener("input", e => {
-      state.theme.accent = e.target.value;
-      LS.set("theme", state.theme);
-      applyTheme();
-    });
-    $("#btnRadius").addEventListener("input", e => {
-      state.theme.btnRadius = parseInt(e.target.value, 10);
-      LS.set("theme", state.theme);
-      applyTheme();
-    });
-    $("#bodyFont").addEventListener("change", e => {
-      state.theme.bodyFont = e.target.value;
-      LS.set("theme", state.theme);
-      applyTheme();
-    });
-    $("#headingFont").addEventListener("change", e => {
-      state.theme.headingFont = e.target.value;
-      LS.set("theme", state.theme);
-      applyTheme();
-    });
-    $("#clockMode").addEventListener("change", e => {
-      state.theme.clockMode = e.target.value;
-      LS.set("theme", state.theme);
-      applyTheme();
-    });
-    $("#clockModeInline").addEventListener("change", e => {
-      state.theme.clockMode = e.target.value;
-      LS.set("theme", state.theme);
-      applyTheme();
-    });
-    $("#is12h").addEventListener("change", e => {
-      state.theme.is12h = (e.target.value === "true");
-      LS.set("theme", state.theme);
-      applyTheme();
-    });
-    $("#formatToggle").addEventListener("change", e => {
-      state.theme.is12h = (e.target.value === "true");
-      LS.set("theme", state.theme);
-      applyTheme();
-    });
-    $("#smoothSeconds").addEventListener("change", e => {
-      state.theme.smoothSeconds = (e.target.value === "true");
-      LS.set("theme", state.theme);
-      applyTheme();
-    });
-
-    $("#resetTheme").addEventListener("click", () => {
-      state.theme = {...themeDefaults};
-      LS.set("theme", state.theme);
-      applyTheme();
-      swapModeButtons();
-    });
-
-    function applyClockMode(){
-      const mode = state.theme.clockMode;
-      const analog = $("#analogCard");
-      const digital = $("#digitalCard");
-      if (mode === "both") {
-        analog.classList.remove("hidden");
-        digital.classList.remove("hidden");
-      } else if (mode === "analog") {
-        analog.classList.remove("hidden");
-        digital.classList.add("hidden");
-      } else {
-        analog.classList.add("hidden");
-        digital.classList.remove("hidden");
-      }
-    }
-
-    /* ---------------------- CLOCKS ---------------------- */
-    // Populate analog ticks
-    function createTicks() {
-      const wrap = $("#analogClock");
-      // clear existing ticks if any
-      $$(".tick", wrap).forEach(n => n.remove());
-      for (let i = 0; i < 60; i++) {
-        const tick = document.createElement("div");
-        tick.className = "tick " + (i % 5 === 0 ? "hour" : "min");
-        const ang = i * 6;
-        tick.style.transform = `translate(-50%, -50%) rotate(${ang}deg) translate(calc(50% - 8px), 0)`;
-        const bar = document.createElement("div");
-        bar.className = "bar";
-        tick.appendChild(bar);
-        wrap.appendChild(tick);
-      }
-    }
-    createTicks();
-
-    function updateDigital(now = new Date()) {
-      const is12 = state.theme.is12h;
-      let h = now.getHours();
-      const m = now.getMinutes();
-      const s = now.getSeconds();
-      let mer = "";
-      if (is12) {
-        mer = h >= 12 ? " PM" : " AM";
-        h = h % 12 || 12;
-      }
-      $("#digitalTime").textContent = `${fmt2(h)}:${fmt2(m)}:${fmt2(s)}${is12 ? mer : ""}`;
-
-      const weekday = now.toLocaleDateString(undefined, { weekday: "long" });
-      const dateStr = now.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
-      $("#digitalDate").textContent = `${weekday}, ${dateStr}`;
-    }
-
-    let prevSec = -1;
-    function updateAnalog(now = new Date()) {
-      const ms = now.getMilliseconds();
-      const s = now.getSeconds() + (state.theme.smoothSeconds ? ms/1000 : 0);
-      const m = now.getMinutes() + s/60;
-      const h = now.getHours() % 12 + m/60;
-
-      $("#hourHand").style.transform = `translate(-50%, -100%) rotate(${h * 30}deg)`;
-      $("#minuteHand").style.transform = `translate(-50%, -100%) rotate(${m * 6}deg)`;
-      $("#secondHand").style.transform = `translate(-50%, -100%) rotate(${s * 6}deg)`;
-
-      // Optimize digital update to once per second
-      if (Math.floor(s) !== prevSec) {
-        prevSec = Math.floor(s);
-        updateDigital(now);
-      }
-    }
-
-    function tick() {
-      const now = new Date();
-      updateAnalog(now);
-      requestAnimationFrame(tick);
-    }
-    requestAnimationFrame(tick);
-
-    /* ---------------------- POMODORO ---------------------- */
-    const pomo = {
-      mode: "focus", // "focus" | "short" | "long"
-      remaining: state.pomo.focusMin * 60, // seconds
-      running: false,
-      timerId: null,
-      cycleCount: 0 // completed focus sessions since last long break
-    };
-
-    // Load saved
-    $("#focusMin").value = state.pomo.focusMin;
-    $("#shortMin").value = state.pomo.shortMin;
-    $("#longMin").value = state.pomo.longMin;
-    $("#longEvery").value = state.pomo.longEvery;
-    $("#pomoAuto").checked = !!state.pomo.autoNext;
-    updatePomoUI(true);
-
-    function secondsToMMSS(sec) {
-      sec = Math.max(0, Math.floor(sec));
-      const mm = Math.floor(sec / 60);
-      const ss = sec % 60;
-      return `${fmt2(mm)}:${fmt2(ss)}`;
-    }
-
-    function setRingProgress(remain, total) {
-      const frac = 1 - (remain / total);
-      const deg = Math.min(360, Math.max(0, frac * 360));
-      $("#pomoRing").style.setProperty("--deg", deg + "deg");
-    }
-
-    function setPomoMode(nextMode) {
-      pomo.mode = nextMode;
-      if (nextMode === "focus") {
-        pomo.remaining = state.pomo.focusMin * 60;
-        $("#pomoState").textContent = "Focus";
-      } else if (nextMode === "short") {
-        pomo.remaining = state.pomo.shortMin * 60;
-        $("#pomoState").textContent = "Short Break";
-      } else {
-        pomo.remaining = state.pomo.longMin * 60;
-        $("#pomoState").textContent = "Long Break";
-      }
-      updatePomoUI(true);
-    }
-
-    function updatePomoUI(resetRing = false) {
-      $("#pomoTime").textContent = secondsToMMSS(pomo.remaining);
-      const total =
-        pomo.mode === "focus" ? state.pomo.focusMin * 60 :
-        pomo.mode === "short" ? state.pomo.shortMin * 60 :
-        state.pomo.longMin * 60;
-      if (resetRing) setRingProgress(pomo.remaining, total);
-      $("#pomoStats").textContent = `Sessions: ${state.pomo.sessions} • Completed focus: ${state.pomo.completed}`;
-    }
-
-    function startPomo() {
-      if (pomo.running) return;
-      pomo.running = true;
-      $("#pomoStart").disabled = true;
-      $("#pomoPause").disabled = false;
-      $("#pomoReset").disabled = false;
-
-      let last = performance.now();
-      function step(now) {
-        if (!pomo.running) return;
-        const dt = (now - last) / 1000; // seconds
-        last = now;
-
-        pomo.remaining -= dt;
-        const total =
-          pomo.mode === "focus" ? state.pomo.focusMin * 60 :
-          pomo.mode === "short" ? state.pomo.shortMin * 60 :
-          state.pomo.longMin * 60;
-        setRingProgress(pomo.remaining, total);
-        $("#pomoTime").textContent = secondsToMMSS(pomo.remaining);
-
-        if (pomo.remaining <= 0) {
-          // Transition
-          beep(200, 880);
-          pomo.running = false;
-          state.pomo.sessions += 1;
-          if (pomo.mode === "focus") {
-            state.pomo.completed += 1;
-            pomo.cycleCount += 1;
-            if (pomo.cycleCount >= state.pomo.longEvery) {
-              pomo.cycleCount = 0;
-              setPomoMode("long");
-            } else {
-              setPomoMode("short");
-            }
-          } else {
-            setPomoMode("focus");
-          }
-          LS.set("pomo", state.pomo);
-          updatePomoUI(true);
-
-          if (state.pomo.autoNext) {
-            startPomo();
-          } else {
-            $("#pomoStart").disabled = false;
-          }
-          return;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productivity Dashboard</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #000000;
+            --clock-color: #000000;
+            --font-family: Arial, sans-serif;
         }
 
-        pomo.timerId = requestAnimationFrame(step);
-      }
-      pomo.timerId = requestAnimationFrame(step);
-    }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-family);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
 
-    function pausePomo() {
-      if (!pomo.running) return;
-      pomo.running = false;
-      $("#pomoStart").disabled = false;
-      if (pomo.timerId) cancelAnimationFrame(pomo.timerId);
-      pomo.timerId = null;
-    }
+        #container {
+            max-width: 800px;
+            width: 100%;
+        }
 
-    function resetPomo() {
-      pausePomo();
-      setPomoMode("focus");
-      // Keep stats, only reset current timer
-      updatePomoUI(true);
-      $("#pomoStart").disabled = false;
-    }
+        h1, h2 {
+            text-align: center;
+        }
 
-    $("#pomoStart").addEventListener("click", startPomo);
-    $("#pomoPause").addEventListener("click", pausePomo);
-    $("#pomoReset").addEventListener("click", resetPomo);
+        #clocks {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 40px;
+        }
 
-    $("#pomoAuto").addEventListener("change", (e) => {
-      state.pomo.autoNext = e.target.checked;
-      LS.set("pomo", state.pomo);
-    });
+        .clock {
+            width: 200px;
+            height: 200px;
+            border: 10px solid var(--clock-color);
+            border-radius: 50%;
+            position: relative;
+        }
 
-    $("#focusMin").addEventListener("change", e => {
-      state.pomo.focusMin = clamp(parseInt(e.target.value, 10) || 25, 1, 120);
-      e.target.value = state.pomo.focusMin;
-      LS.set("pomo", state.pomo);
-      if (pomo.mode === "focus" && !pomo.running) setPomoMode("focus");
-    });
-    $("#shortMin").addEventListener("change", e => {
-      state.pomo.shortMin = clamp(parseInt(e.target.value, 10) || 5, 1, 60);
-      e.target.value = state.pomo.shortMin;
-      LS.set("pomo", state.pomo);
-      if (pomo.mode === "short" && !pomo.running) setPomoMode("short");
-    });
-    $("#longMin").addEventListener("change", e => {
-      state.pomo.longMin = clamp(parseInt(e.target.value, 10) || 15, 1, 60);
-      e.target.value = state.pomo.longMin;
-      LS.set("pomo", state.pomo);
-      if (pomo.mode === "long" && !pomo.running) setPomoMode("long");
-    });
-    $("#longEvery").addEventListener("change", e => {
-      state.pomo.longEvery = clamp(parseInt(e.target.value, 10) || 4, 2, 12);
-      e.target.value = state.pomo.longEvery;
-      LS.set("pomo", state.pomo);
-    });
+        .hand {
+            position: absolute;
+            left: 50%;
+            transform-origin: 50% 100%;
+            transition: transform 0.05s cubic-bezier(0.4, 2.0, 0.2, 1.0);
+        }
 
-    function beep(duration=200, frequency=880, volume=0.2) {
-      try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const o = ctx.createOscillator();
-        const g = ctx.createGain();
-        o.type = "sine";
-        o.frequency.value = frequency;
-        g.gain.value = volume;
-        o.connect(g); g.connect(ctx.destination);
-        o.start();
-        setTimeout(() => {
-          o.stop();
-          ctx.close();
-        }, duration);
-      } catch {}
-    }
+        .hour-hand {
+            width: 6px;
+            height: 60px;
+            background-color: var(--clock-color);
+            top: 40px;
+            margin-left: -3px;
+        }
 
-    /* ---------------------- HOURLY MOTIVATION ---------------------- */
-    // Seeded RNG for deterministic quote per hour (so refresh won't change it)
-    function simpleHash(str) {
-      let h = 2166136261 >>> 0;
-      for (let i = 0; i < str.length; i++) {
-        h ^= str.charCodeAt(i);
-        h = Math.imul(h, 16777619);
-      }
-      return h >>> 0;
-    }
-    function lcg(seed) {
-      let s = seed >>> 0;
-      return function() {
-        s = (Math.imul(1664525, s) + 1013904223) >>> 0;
-        return (s >>> 0) / 4294967296;
-      };
-    }
-    function choice(rand, arr) { return arr[Math.floor(rand() * arr.length)]; }
+        .minute-hand {
+            width: 4px;
+            height: 80px;
+            background-color: var(--clock-color);
+            top: 20px;
+            margin-left: -2px;
+        }
 
-    // Building blocks for infinite, original lines
-    const Q = {
-      subjects: [
-        "Your story", "Your effort", "Your curiosity", "Your courage", "Your progress",
-        "Your resilience", "Your perspective", "Your discipline", "Your kindness",
-        "Your patience", "Your creativity", "Your focus", "Your voice", "Your vision",
-        "Your humility", "Your questions", "Your consistency", "Your momentum",
-        "Your habits", "Your preparation", "Your belief", "Your choices", "Your craft",
-        "Your practice", "Your energy"
-      ],
-      verbs: [
-        "shapes", "builds", "guides", "amplifies", "unlocks", "compounds",
-        "clarifies", "anchors", "elevates", "transforms", "directs",
-        "sustains", "refines", "calibrates"
-      ],
-      objects: [
-        "the future you want", "every next step", "what seems possible", "the path forward",
-        "your luck", "your baseline", "what lasts", "who you become", "your tomorrow",
-        "your team", "your outcomes", "your readiness", "your confidence"
-      ],
-      closers: [
-        "Start where you are.", "Move one clean inch.", "Small wins stack into avalanches.",
-        "Make it obvious and easy.", "Be brave enough to be bad at something new.",
-        "Progress loves patience.", "Direction beats speed.", "You are allowed to be a beginner.",
-        "Consistency is a superpower.", "Let practice make the noise.", "Decide once, execute daily.",
-        "You can do hard things.", "Choose effort over approval.", "Less friction, more action.",
-        "Ship, learn, iterate.", "No zero days.", "Win the morning.", "Measure backward, aim forward.",
-        "Stay on the path.", "Honor your capacity.", "Feelings are data, not commands.",
-        "Sharpen your edges.", "Be relentlessly helpful.", "Make it count."
-      ],
-      openers: [
-        "Today,", "Right now,", "This hour,", "This moment,", "Before the sun sets,", "While it's quiet,",
-        "When in doubt,", "Between here and there,"
-      ],
-      directives: [
-        "take the smallest step that moves you forward",
-        "ask a better question",
-        "remove one friction",
-        "simplify the plan",
-        "start the timer and begin",
-        "prepare your tools",
-        "turn off one distraction",
-        "write the first sentence",
-        "do one deliberate rep",
-        "commit to ten minutes"
-      ]
-    };
+        .second-hand {
+            width: 2px;
+            height: 90px;
+            background-color: red;
+            top: 10px;
+            margin-left: -1px;
+        }
 
-    function generateQuote(seedStr) {
-      const rand = lcg(simpleHash(seedStr));
-      const form = Math.floor(rand() * 4);
-      if (form === 0) {
-        // Subject-verb-object + closer
-        const s = choice(rand, Q.subjects);
-        const v = choice(rand, Q.verbs);
-        const o = choice(rand, Q.objects);
-        const c = choice(rand, Q.closers);
-        return `${s} ${v} ${o}. ${c}`;
-      } else if (form === 1) {
-        // Two-sentence: opener + directive; then closer
-        const op = choice(rand, Q.openers);
-        const d = choice(rand, Q.directives);
-        const c = choice(rand, Q.closers);
-        return `${op} ${d}. ${c}`;
-      } else if (form === 2) {
-        // Contrast
-        const d = choice(rand, Q.directives);
-        const s = choice(rand, Q.subjects);
-        return `Less noise, more ${d.split(" ")[0]}. ${s} deserves your best minutes.`;
-      } else {
-        // Ownership
-        const s = choice(rand, Q.subjects);
-        const c = choice(rand, Q.closers);
-        return `${s} is your leverage. Protect it daily. ${c}`;
-      }
-    }
+        #digital-clock {
+            font-size: 48px;
+            text-align: center;
+            color: var(--clock-color);
+        }
 
-    function currentHourKey(date = new Date()) {
-      // e.g., "2025-09-15T13" (local time)
-      const y = date.getFullYear();
-      const m = fmt2(date.getMonth()+1);
-      const d = fmt2(date.getDate());
-      const h = fmt2(date.getHours());
-      return `${y}-${m}-${d}T${h}`;
-    }
+        #pomodoro {
+            text-align: center;
+            margin-bottom: 40px;
+        }
 
-    function scheduleNextTopOfHour() {
-      const now = new Date();
-      const msToNextHour = (60 - now.getMinutes() - 1) * 60 * 1000
-                         + (60 - now.getSeconds()) * 1000
-                         - now.getMilliseconds();
-      setTimeout(() => {
-        refreshHourlyQuote();
-        scheduleNextTopOfHour();
-      }, Math.max(1000, msToNextHour));
-    }
+        #timer-display {
+            font-size: 72px;
+            margin-bottom: 20px;
+        }
 
-    function updateQuoteCountdown() {
-      const now = new Date();
-      const mins = 59 - now.getMinutes();
-      const secs = 59 - now.getSeconds();
-      $("#quoteCountdown").textContent = `Next auto-refresh in ${fmt2(mins)}:${fmt2(secs)} (at the top of the hour).`;
-    }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background-color: var(--text-color);
+            color: var(--bg-color);
+            border: none;
+            cursor: pointer;
+            font-family: var(--font-family);
+        }
 
-    function refreshHourlyQuote(forceNew = false) {
-      const hourKey = currentHourKey();
-      if (!forceNew && state.quote.hourKey === hourKey && state.quote.text) {
-        $("#quoteText").textContent = state.quote.text;
-        return;
-      }
-      const text = generateQuote(hourKey);
-      state.quote = { hourKey, text };
-      LS.set("quote", state.quote);
-      $("#quoteText").textContent = text;
-    }
+        button:hover {
+            opacity: 0.8;
+        }
 
-    $("#nextQuote").addEventListener("click", () => {
-      const hourKey = currentHourKey();
-      // Generate a new variation by appending a small salt
-      const salt = Date.now().toString(36).slice(-4);
-      const text = generateQuote(hourKey + "-" + salt);
-      state.quote = { hourKey, text };
-      LS.set("quote", state.quote);
-      $("#quoteText").textContent = text;
-    });
+        #quote {
+            text-align: center;
+            font-style: italic;
+            margin-bottom: 40px;
+            padding: 20px;
+            border: 1px solid var(--text-color);
+            border-radius: 8px;
+        }
 
-    // Countdown ticker
-    setInterval(updateQuoteCountdown, 1000);
+        #settings {
+            text-align: center;
+        }
 
-    /* ---------------------- INIT ---------------------- */
-    applyTheme();
-    swapModeButtons();
-    refreshHourlyQuote();
-    scheduleNextTopOfHour();
+        label {
+            display: block;
+            margin: 10px 0;
+        }
 
-    // Also keep digital time setting in sync if changed inline
-    // (already wired above via #formatToggle)
+        input[type="color"],
+        select {
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <h1>Productivity Dashboard</h1>
+        
+        <div id="clocks">
+            <div id="analog-clock" class="clock">
+                <div class="hour-hand hand"></div>
+                <div class="minute-hand hand"></div>
+                <div class="second-hand hand"></div>
+            </div>
+            <div id="digital-clock">00:00:00</div>
+        </div>
+        
+        <div id="pomodoro">
+            <h2>Pomodoro Timer</h2>
+            <div id="timer-display">25:00</div>
+            <button id="start-pomo">Start</button>
+            <button id="reset-pomo">Reset</button>
+        </div>
+        
+        <div id="quote">
+            <p id="motivational-quote">Loading motivational quote...</p>
+        </div>
+        
+        <div id="settings">
+            <h2>Settings</h2>
+            <button id="light-mode">Light Mode</button>
+            <button id="dark-mode">Dark Mode</button>
+            <label>Background Color: <input type="color" id="bg-color" value="#ffffff"></label>
+            <label>Text Color: <input type="color" id="text-color" value="#000000"></label>
+            <label>Clock Color: <input type="color" id="clock-color" value="#000000"></label>
+            <label>Font Family:
+                <select id="font-select">
+                    <option value="Arial, sans-serif">Arial</option>
+                    <option value="'Times New Roman', serif">Times New Roman</option>
+                    <option value="'Courier New', monospace">Courier</option>
+                    <option value="Verdana, sans-serif">Verdana</option>
+                    <option value="Georgia, serif">Georgia</option>
+                </select>
+            </label>
+        </div>
+    </div>
 
-    // Accessibility: keyboard shortcuts
-    // s = start/pause, r = reset, n = new quote, t = toggle settings
-    document.addEventListener("keydown", (e) => {
-      const tag = (e.target && e.target.tagName) || "";
-      if (/(INPUT|SELECT|TEXTAREA)/.test(tag)) return;
-      if (e.key === "s") {
-        if (!pomo.running) startPomo(); else pausePomo();
-      } else if (e.key === "r") {
-        resetPomo();
-      } else if (e.key === "n") {
-        $("#nextQuote").click();
-      } else if (e.key === "t") {
-        $("#toggleSettings").click();
-      }
-    });
+    <script>
+        const root = document.documentElement;
 
-    // Analog clock responsiveness: rebuild ticks on resize (for crisp layout)
-    let resizeTimer;
-    window.addEventListener("resize", () => {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => createTicks(), 150);
-    });
-  </script>
+        // Update clocks
+        function updateClocks() {
+            const now = new Date();
+            const seconds = now.getSeconds();
+            const minutes = now.getMinutes();
+            const hours = now.getHours() % 12;
+
+            const secondDeg = seconds * 6;
+            const minuteDeg = minutes * 6 + seconds * 0.1;
+            const hourDeg = hours * 30 + minutes * 0.5;
+
+            document.querySelector('.second-hand').style.transform = `rotate(${secondDeg}deg)`;
+            document.querySelector('.minute-hand').style.transform = `rotate(${minuteDeg}deg)`;
+            document.querySelector('.hour-hand').style.transform = `rotate(${hourDeg}deg)`;
+
+            document.getElementById('digital-clock').textContent = now.toLocaleTimeString('en-US', { hour12: false });
+        }
+        setInterval(updateClocks, 1000);
+        updateClocks();
+
+        // Pomodoro Timer
+        let pomodoroTimer;
+        let pomodoroTime = 25 * 60;
+
+        function updatePomodoroDisplay() {
+            const min = Math.floor(pomodoroTime / 60);
+            const sec = pomodoroTime % 60;
+            document.getElementById('timer-display').textContent = `${min}:${sec < 10 ? '0' + sec : sec}`;
+        }
+
+        document.getElementById('start-pomo').addEventListener('click', () => {
+            clearInterval(pomodoroTimer);
+            pomodoroTimer = setInterval(() => {
+                if (pomodoroTime > 0) {
+                    pomodoroTime--;
+                    updatePomodoroDisplay();
+                } else {
+                    clearInterval(pomodoroTimer);
+                    alert('Pomodoro session complete! Time for a break.');
+                }
+            }, 1000);
+        });
+
+        document.getElementById('reset-pomo').addEventListener('click', () => {
+            clearInterval(pomodoroTimer);
+            pomodoroTime = 25 * 60;
+            updatePomodoroDisplay();
+        });
+
+        updatePomodoroDisplay();
+
+        // Motivational Quotes (fetch from API for unlimited variety)
+        async function updateQuote() {
+            try {
+                const response = await fetch('https://api.quotable.io/random?tags=inspirational|motivational');
+                const data = await response.json();
+                document.getElementById('motivational-quote').textContent = data.content;
+            } catch (error) {
+                // Fallback to example quote if API fails
+                document.getElementById('motivational-quote').textContent = "Your story is what you have, what you will always have. It is something to own.";
+            }
+        }
+        updateQuote();
+        setInterval(updateQuote, 3600000); // Change every hour
+
+        // Theme Modes
+        document.getElementById('light-mode').addEventListener('click', () => {
+            root.style.setProperty('--bg-color', '#ffffff');
+            root.style.setProperty('--text-color', '#000000');
+            root.style.setProperty('--clock-color', '#000000');
+            document.getElementById('bg-color').value = '#ffffff';
+            document.getElementById('text-color').value = '#000000';
+            document.getElementById('clock-color').value = '#000000';
+        });
+
+        document.getElementById('dark-mode').addEventListener('click', () => {
+            root.style.setProperty('--bg-color', '#000000');
+            root.style.setProperty('--text-color', '#ffffff');
+            root.style.setProperty('--clock-color', '#ffffff');
+            document.getElementById('bg-color').value = '#000000';
+            document.getElementById('text-color').value = '#ffffff';
+            document.getElementById('clock-color').value = '#ffffff';
+        });
+
+        // Custom Theme
+        document.getElementById('bg-color').addEventListener('input', (e) => {
+            root.style.setProperty('--bg-color', e.target.value);
+        });
+
+        document.getElementById('text-color').addEventListener('input', (e) => {
+            root.style.setProperty('--text-color', e.target.value);
+        });
+
+        document.getElementById('clock-color').addEventListener('input', (e) => {
+            root.style.setProperty('--clock-color', e.target.value);
+        });
+
+        document.getElementById('font-select').addEventListener('change', (e) => {
+            root.style.setProperty('--font-family', e.target.value);
+        });
+    </script>
 </body>
 </html>
