@@ -1,2 +1,2 @@
-# clock
-Analog and Digital Clock
+# Simple Clock Project
+Description in progress
