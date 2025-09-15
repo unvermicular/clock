@@ -1,365 +1,1573 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Productivity Dashboard</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Arial&family=Roboto&family=Times+New+Roman&family=Open+Sans&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-color: #ffffff;
-            --text-color: #000000;
-            --accent-color: #007bff;
-            --button-bg: #007bff;
-            --button-text: #ffffff;
-            --font-family: 'Arial', sans-serif;
-        }
-        body.dark {
-            --bg-color: #121212;
-            --text-color: #ffffff;
-            --accent-color: #bb86fc;
-            --button-bg: #bb86fc;
-            --button-text: #000000;
-        }
-        body {
-            font-family: var(--font-family);
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 20px;
-            transition: background-color 0.3s, color 0.3s;
-        }
-        h1, h2 {
-            text-align: center;
-        }
-        .section {
-            margin: 20px 0;
-            padding: 20px;
-            border: 1px solid var(--accent-color);
-            border-radius: 8px;
-        }
-        button {
-            background-color: var(--button-bg);
-            color: var(--button-text);
-            border: none;
-            padding: 10px 20px;
-            margin: 5px;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-        button:hover {
-            opacity: 0.9;
-        }
-        #analog-clock {
-            display: block;
-            margin: 0 auto;
-        }
-        #digital-clock {
-            font-size: 2em;
-            text-align: center;
-        }
-        #pomodoro-timer {
-            font-size: 3em;
-            text-align: center;
-        }
-        #motivational-quote {
-            font-style: italic;
-            text-align: center;
-            margin: 20px 0;
-        }
-        #customization {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        #customization div {
-            margin: 10px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Time & Focus Studio — Clocks, Pomodoro, and Motivation</title>
+  <meta name="description" content="A responsive, customizable website featuring an analog and digital clock, a Pomodoro timer, dark/light themes, full theme customization, and endlessly generated motivational messages that change every hour." />
+  <style>
+    :root {
+      /* Theme variables (overridable at runtime) */
+      --bg: #0b0f15;
+      --text: #e8eef9;
+      --muted: #90A0B7;
+      --card: #121826;
+      --border: #1f2a3a;
+      --shadow: 0 8px 28px rgba(0,0,0,0.25);
+      --accent: #6aa0ff;
+
+      /* Button theming */
+      --btn-bg: var(--accent);
+      --btn-text: #0c1117;
+      --btn-radius: 12px;
+
+      /* Typography */
+      --font-base: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Segoe UI Variable", "Noto Sans", "Liberation Sans", sans-serif;
+      --font-serif: Georgia, "Times New Roman", Times, serif;
+      --font-mono: ui-monospace, Menlo, Monaco, Consolas, "Courier New", monospace;
+      --font-size: 16px;
+
+      /* Components */
+      --ring-bg: conic-gradient(var(--accent) 0%, transparent 0%);
+    }
+
+    /* Light baseline (applied when [data-theme="light"]) */
+    body[data-theme="light"] {
+      --bg: #fbfcff;
+      --text: #0b1220;
+      --muted: #54607a;
+      --card: #ffffff;
+      --border: #e7eaf1;
+      --shadow: 0 8px 28px rgba(12,17,32,0.08);
+      --accent: #2f6bff;
+
+      --btn-bg: var(--accent);
+      --btn-text: #ffffff;
+    }
+
+    /* Dark baseline (applied when [data-theme="dark"]) */
+    body[data-theme="dark"] {
+      --bg: #0b0f15;
+      --text: #e8eef9;
+      --muted: #90A0B7;
+      --card: #121826;
+      --border: #1f2a3a;
+      --shadow: 0 8px 28px rgba(0,0,0,0.25);
+      --accent: #6aa0ff;
+
+      --btn-bg: var(--accent);
+      --btn-text: #0c1117;
+    }
+
+    /* Global layout */
+    html, body {
+      height: 100%;
+    }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-base);
+      font-size: var(--font-size);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    a:hover { text-decoration: underline; }
+    img, canvas, svg {
+      max-width: 100%;
+      height: auto;
+      display: block;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    /* Top bar */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: linear-gradient(180deg, var(--bg), color-mix(in hsl, var(--bg) 80%, transparent));
+      backdrop-filter: blur(6px);
+      border-bottom: 1px solid var(--border);
+    }
+    .topbar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 16px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      letter-spacing: .2px;
+    }
+    .brand .logo {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, var(--accent), color-mix(in hsl, var(--accent) 30%, transparent));
+      box-shadow: 0 0 0 2px color-mix(in hsl, var(--accent) 60%, transparent), 0 4px 16px color-mix(in hsl, var(--accent) 40%, transparent);
+    }
+
+    /* Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+    @media (min-width: 960px) {
+      .grid {
+        grid-template-columns: 1.1fr 0.9fr;
+        grid-auto-rows: 1fr;
+      }
+      #motivation {
+        grid-column: 1 / -1;
+      }
+    }
+
+    /* Card */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+    .card h2 {
+      margin: 0 0 8px 0;
+      font-size: 1.1rem;
+    }
+    .subtle {
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .btn {
+      border: none;
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      padding: 10px 14px;
+      border-radius: var(--btn-radius);
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform .04s ease, filter .15s ease;
+      box-shadow: 0 1px 0 rgba(0,0,0,.06), 0 6px 16px color-mix(in hsl, var(--btn-bg) 25%, transparent);
+    }
+    .btn:hover { filter: brightness(1.05); }
+    .btn:active { transform: translateY(1px) scale(.99); }
+    .btn.secondary {
+      background: color-mix(in hsl, var(--btn-bg) 20%, var(--bg));
+      color: var(--text);
+      box-shadow: 0 1px 0 rgba(0,0,0,.04);
+      border: 1px solid var(--border);
+    }
+    .btn.ghost {
+      background: transparent;
+      color: var(--text);
+      border: 1px dashed var(--border);
+      box-shadow: none;
+    }
+    .btn.small { padding: 6px 10px; font-size: .9rem; }
+    .btn.block { width: 100%; }
+    .btn.warn {
+      --warn: #ff6b6b;
+      background: var(--warn);
+      color: white;
+      box-shadow: 0 6px 16px color-mix(in hsl, var(--warn) 40%, transparent);
+    }
+    .segmented {
+      display: inline-flex;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .segmented button {
+      background: transparent;
+      color: var(--text);
+      border: none;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+    .segmented button.active {
+      background: var(--accent);
+      color: var(--btn-text);
+    }
+    input[type="color"],
+    input[type="number"],
+    input[type="range"],
+    select,
+    input[type="text"] {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 10px;
+      outline: none;
+    }
+    input[type="color"] { padding: 0; width: 40px; height: 36px; border-radius: 8px; }
+    label {
+      display: grid;
+      gap: 6px;
+      font-size: .9rem;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 10px;
+    }
+    @media (max-width: 720px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    details {
+      margin-top: 8px;
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      padding: 8px 10px;
+    }
+    details > summary {
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--text);
+      list-style: none;
+    }
+    details > summary::-webkit-details-marker { display: none; }
+    .inline {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Clocks layout */
+    .clocks {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+    @media (min-width: 720px) {
+      .clocks {
+        grid-template-columns: 1fr 1fr;
+        align-items: stretch;
+      }
+    }
+
+    /* Analog clock */
+    .analog-wrap {
+      aspect-ratio: 1/1;
+      width: 100%;
+      background: radial-gradient(120% 120% at 30% 30%, color-mix(in hsl, var(--card) 75%, var(--accent)), var(--card));
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+    canvas#analog {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Digital clock */
+    .digital {
+      display: grid;
+      align-content: center;
+      justify-items: center;
+      gap: 6px;
+      height: 100%;
+      text-align: center;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: linear-gradient(180deg, color-mix(in hsl, var(--card) 70%, transparent), var(--card));
+      padding: 14px;
+    }
+    .digital-time {
+      font-size: clamp(28px, 8vw, 58px);
+      letter-spacing: 2px;
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum";
+      font-weight: 700;
+    }
+    .digital-date {
+      color: var(--muted);
+      font-size: .95rem;
+    }
+
+    /* Pomodoro */
+    .pomodoro {
+      display: grid;
+      gap: 12px;
+    }
+    .ring {
+      --size: 220px;
+      width: var(--size);
+      height: var(--size);
+      margin: 8px auto;
+      border-radius: 50%;
+      background: conic-gradient(var(--accent) calc(var(--p, 0) * 1%), color-mix(in hsl, var(--bg) 85%, var(--border)) 0%);
+      display: grid;
+      place-items: center;
+      position: relative;
+      box-shadow: inset 0 0 0 10px color-mix(in hsl, var(--bg) 85%, var(--border));
+    }
+    .ring::after {
+      content: "";
+      position: absolute;
+      inset: 12px;
+      border-radius: 50%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+    }
+    .ring .readout {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+    }
+    .readout .big {
+      font-size: 38px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      font-variant-numeric: tabular-nums;
+    }
+    .readout .mode {
+      color: var(--muted);
+      font-size: .95rem;
+      margin-top: 4px;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: color-mix(in hsl, var(--card) 85%, var(--bg));
+      color: var(--muted);
+      font-size: .9rem;
+    }
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Motivation */
+    blockquote.motivation {
+      margin: 0;
+      font-size: clamp(18px, 3.4vw, 28px);
+      line-height: 1.35;
+      font-weight: 700;
+      letter-spacing: .2px;
+    }
+    .motivation-wrap {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+    @media (min-width: 960px) {
+      .motivation-wrap {
+        grid-template-columns: 1.2fr 0.8fr;
+      }
+    }
+    .kbd {
+      font-family: var(--font-mono);
+      background: color-mix(in hsl, var(--card) 80%, var(--bg));
+      padding: 2px 6px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: .85em;
+      color: var(--muted);
+    }
+
+    /* Footer */
+    footer {
+      margin: 20px 0 40px;
+      text-align: center;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    /* Focus styles */
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      border-radius: 8px;
+    }
+  </style>
 </head>
-<body>
-    <h1>Productivity Dashboard</h1>
-
-    <!-- Theme Toggle -->
-    <div style="text-align: center;">
-        <button id="toggle-theme">Toggle Dark/Light Mode</button>
-    </div>
-
-    <!-- Customization Section -->
-    <div class="section">
-        <h2>Theme Customization</h2>
-        <div id="customization">
-            <div>
-                <label for="bg-color">Background Color:</label>
-                <input type="color" id="bg-color" value="#ffffff">
-            </div>
-            <div>
-                <label for="text-color">Text Color:</label>
-                <input type="color" id="text-color" value="#000000">
-            </div>
-            <div>
-                <label for="accent-color">Accent Color:</label>
-                <input type="color" id="accent-color" value="#007bff">
-            </div>
-            <div>
-                <label for="button-bg">Button Background:</label>
-                <input type="color" id="button-bg" value="#007bff">
-            </div>
-            <div>
-                <label for="button-text">Button Text:</label>
-                <input type="color" id="button-text" value="#ffffff">
-            </div>
-            <div>
-                <label for="font-family">Font:</label>
-                <select id="font-family">
-                    <option value="'Arial', sans-serif">Arial</option>
-                    <option value="'Roboto', sans-serif">Roboto</option>
-                    <option value="'Times New Roman', serif">Times New Roman</option>
-                    <option value="'Open Sans', sans-serif">Open Sans</option>
-                </select>
-            </div>
+<body data-theme="dark">
+  <header class="topbar">
+    <div class="topbar-inner container">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <div style="font-size:1rem">Time & Focus Studio</div>
+          <div class="subtle" style="font-size:.85rem">Clocks • Pomodoro • Motivation</div>
         </div>
+      </div>
+      <nav class="controls" aria-label="Theme">
+        <div class="segmented" role="tablist" aria-label="Theme mode">
+          <button id="btnLight" role="tab" aria-selected="false" title="Light mode">Light</button>
+          <button id="btnDark" role="tab" aria-selected="true" class="active" title="Dark mode">Dark</button>
+        </div>
+        <details>
+          <summary>Theme Designer</summary>
+          <div class="form-grid" style="margin-top:8px">
+            <label>Accent color
+              <input type="color" id="varAccent" value="#6aa0ff" />
+            </label>
+            <label>Background
+              <input type="color" id="varBg" value="#0b0f15" />
+            </label>
+            <label>Surface (cards)
+              <input type="color" id="varCard" value="#121826" />
+            </label>
+            <label>Text color
+              <input type="color" id="varText" value="#e8eef9" />
+            </label>
+            <label>Muted text
+              <input type="color" id="varMuted" value="#90A0B7" />
+            </label>
+            <label>Button color
+              <input type="color" id="varBtnBg" value="#6aa0ff" />
+            </label>
+            <label>Button text
+              <input type="color" id="varBtnText" value="#0c1117" />
+            </label>
+            <label>Button radius
+              <input type="range" id="varBtnRadius" min="0" max="28" value="12" />
+            </label>
+            <label>Base font
+              <select id="varFont">
+                <option value="system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Segoe UI Variable', 'Noto Sans', 'Liberation Sans', sans-serif">System Sans</option>
+                <option value="Georgia, 'Times New Roman', Times, serif">Serif</option>
+                <option value="ui-monospace, Menlo, Monaco, Consolas, 'Courier New', monospace">Monospace</option>
+              </select>
+            </label>
+            <label>Font size
+              <input type="range" id="varFontSize" min="14" max="22" value="16" />
+            </label>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <button class="btn small" id="btnSaveTheme" title="Save theme">Save</button>
+            <button class="btn secondary small" id="btnResetTheme" title="Reset theme to defaults">Reset</button>
+            <button class="btn ghost small" id="btnExport" title="Export settings">Export</button>
+            <button class="btn ghost small" id="btnImport" title="Import settings">Import</button>
+          </div>
+        </details>
+      </nav>
     </div>
+  </header>
 
-    <!-- Clocks Section -->
-    <div class="section">
+  <main class="container">
+    <div class="grid">
+      <!-- Clocks -->
+      <section id="clocks" class="card">
         <h2>Clocks</h2>
-        <div style="display: flex; justify-content: space-around;">
-            <div>
-                <h3>Analog Clock</h3>
-                <canvas id="analog-clock" width="200" height="200"></canvas>
+        <div class="subtle">Customize an analog and a digital clock. You can also choose a timezone, display seconds, and switch 12/24-hour format.</div>
+        <div class="clocks" style="margin-top:10px">
+          <!-- Analog -->
+          <div>
+            <div class="analog-wrap">
+              <canvas id="analog" aria-label="Analog clock" role="img"></canvas>
             </div>
-            <div>
-                <h3>Digital Clock</h3>
-                <div id="digital-clock">00:00:00</div>
-                <div>
-                    <label for="digital-format">Format:</label>
-                    <select id="digital-format">
-                        <option value="HH:MM:SS">24-hour (HH:MM:SS)</option>
-                        <option value="hh:MM:SS A">12-hour (hh:MM:SS AM/PM)</option>
-                    </select>
-                </div>
-            </div>
+          </div>
+          <!-- Digital -->
+          <div class="digital">
+            <div class="digital-time" id="digitalTime">00:00:00</div>
+            <div class="digital-date" id="digitalDate">Monday, Jan 1</div>
+          </div>
         </div>
-    </div>
 
-    <!-- Pomodoro Timer Section -->
-    <div class="section">
+        <details style="margin-top:12px">
+          <summary>Clock customization</summary>
+          <div class="form-grid" style="margin-top:10px">
+            <label>Timezone source
+              <select id="clockTzSource">
+                <option value="local">Local timezone</option>
+                <option value="fixed">Fixed UTC offset</option>
+              </select>
+            </label>
+            <label>UTC offset (hours)
+              <input type="number" id="clockTzOffset" min="-12" max="14" step="0.5" value="0" />
+            </label>
+            <label>Digital format
+              <select id="digitalFormat">
+                <option value="24">24-hour</option>
+                <option value="12">12-hour</option>
+              </select>
+            </label>
+            <label>Show seconds (digital)
+              <select id="digitalSeconds">
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+              </select>
+            </label>
+            <label>Blinking colon (digital)
+              <select id="digitalBlink">
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+              </select>
+            </label>
+            <label>Show date (digital)
+              <select id="digitalShowDate">
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+              </select>
+            </label>
+            <label>Analog: show seconds hand
+              <select id="analogSeconds">
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+              </select>
+            </label>
+            <label>Analog: smooth seconds
+              <select id="analogSmooth">
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+              </select>
+            </label>
+            <label>Analog: show numbers
+              <select id="analogNumbers">
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+              </select>
+            </label>
+            <label>Analog face
+              <input type="color" id="analogFace" value="#0e1524" />
+            </label>
+            <label>Ticks color
+              <input type="color" id="analogTicks" value="#90A0B7" />
+            </label>
+            <label>Hour hand
+              <input type="color" id="analogHour" value="#e8eef9" />
+            </label>
+            <label>Minute hand
+              <input type="color" id="analogMinute" value="#6aa0ff" />
+            </label>
+            <label>Second hand
+              <input type="color" id="analogSecond" value="#ff6b6b" />
+            </label>
+          </div>
+        </details>
+      </section>
+
+      <!-- Pomodoro -->
+      <section id="pomodoro" class="card">
         <h2>Pomodoro Timer</h2>
-        <div id="pomodoro-timer">25:00</div>
-        <div style="text-align: center;">
-            <button id="start-pomodoro">Start</button>
-            <button id="stop-pomodoro">Stop</button>
-            <button id="reset-pomodoro">Reset</button>
+        <div class="subtle">Stay focused with customizable work, short break, and long break intervals. Optional sound, auto start, and notifications.</div>
+
+        <div class="pomodoro">
+          <div class="ring" id="pomoRing" aria-hidden="true">
+            <div class="readout">
+              <div class="big" id="pomoTime">25:00</div>
+              <div class="mode"><span id="pomoMode">Work</span> • <span id="pomoRound">Round 1</span></div>
+            </div>
+          </div>
+
+          <div class="row">
+            <button class="btn" id="pomoStart">Start</button>
+            <button class="btn secondary" id="pomoPause">Pause</button>
+            <button class="btn secondary" id="pomoReset">Reset</button>
+            <button class="btn ghost" id="pomoSkip">Skip</button>
+          </div>
+
+          <div class="row">
+            <span class="pill"><strong>Status:</strong> <span id="pomoStatus">Idle</span></span>
+            <span class="pill" title="Keyboard shortcut"><span class="kbd">Space</span> to Start/Pause</span>
+          </div>
+
+          <details>
+            <summary>Timer settings</summary>
+            <div class="form-grid" style="margin-top:8px">
+              <label>Work (minutes)
+                <input type="number" id="pWork" min="1" max="180" value="25" />
+              </label>
+              <label>Short break (minutes)
+                <input type="number" id="pShort" min="1" max="60" value="5" />
+              </label>
+              <label>Long break (minutes)
+                <input type="number" id="pLong" min="1" max="120" value="15" />
+              </label>
+              <label>Rounds until long break
+                <input type="number" id="pRounds" min="1" max="12" value="4" />
+              </label>
+              <label>Auto start next session
+                <select id="pAuto">
+                  <option value="true">Yes</option>
+                  <option value="false">No</option>
+                </select>
+              </label>
+              <label>Sound
+                <select id="pSound">
+                  <option value="true">On</option>
+                  <option value="false">Off</option>
+                </select>
+              </label>
+              <label>Volume
+                <input type="range" id="pVolume" min="0" max="1" step="0.05" value="0.5" />
+              </label>
+              <label>Desktop notifications
+                <button class="btn small secondary" id="pNotify">Enable</button>
+              </label>
+            </div>
+          </details>
         </div>
-        <p id="pomodoro-status">Work Session</p>
+      </section>
+
+      <!-- Motivation -->
+      <section id="motivation" class="card">
+        <h2>Motivation</h2>
+        <div class="motivation-wrap">
+          <div>
+            <blockquote class="motivation" id="quoteText">Your story is what you have, what you will always have. It is something to own.</blockquote>
+            <div class="subtle" id="quoteMeta" style="margin-top:8px">Updates at the top of every hour. Local time.</div>
+            <div class="row" style="margin-top:12px; justify-content:flex-start">
+              <button class="btn small" id="btnShuffle">Shuffle now</button>
+              <button class="btn secondary small" id="btnCopy">Copy</button>
+              <button class="btn ghost small" id="btnAddQuote">Add your own</button>
+            </div>
+          </div>
+          <div>
+            <details>
+              <summary>Your custom messages</summary>
+              <div id="userQuotesWrap" class="subtle" style="margin-top:8px"></div>
+              <div class="form-grid" style="margin-top:8px">
+                <label>Add a message
+                  <input type="text" id="newQuote" placeholder="Type your motivational message…" />
+                </label>
+                <label>
+                  <button class="btn small" id="saveQuote">Save message</button>
+                </label>
+              </div>
+              <div class="row" style="margin-top:8px">
+                <button class="btn warn small" id="clearQuotes">Clear all custom messages</button>
+              </div>
+            </details>
+          </div>
+        </div>
+      </section>
     </div>
+  </main>
 
-    <!-- Motivational Quote Section -->
-    <div class="section">
-        <h2>Motivational Quote</h2>
-        <p id="motivational-quote">Loading...</p>
-    </div>
+  <footer class="container">
+    Built for focus and clarity. All features run locally in your browser. No external assets required.
+  </footer>
 
-    <script>
-        // Theme Toggle
-        const toggleTheme = document.getElementById('toggle-theme');
-        toggleTheme.addEventListener('click', () => {
-            document.body.classList.toggle('dark');
-            updateColorPickers();
+  <script>
+    // Utilities
+    const $ = (sel, root=document) => root.querySelector(sel);
+    const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+    const clamp = (x, min, max) => Math.min(max, Math.max(min, x));
+
+    // Local storage helpers
+    const store = {
+      get(key, fallback) {
+        try {
+          const raw = localStorage.getItem(key);
+          return raw ? JSON.parse(raw) : fallback;
+        } catch { return fallback; }
+      },
+      set(key, value) {
+        try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
+      }
+    };
+
+    // Theme
+    const THEME_KEY = "tfs_theme_vars";
+    const MODE_KEY = "tfs_theme_mode";
+
+    const defaultLight = {
+      bg: "#fbfcff",
+      text: "#0b1220",
+      muted: "#54607a",
+      card: "#ffffff",
+      accent: "#2f6bff",
+      btnBg: "#2f6bff",
+      btnText: "#ffffff",
+      btnRadius: 12,
+      font: "system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Segoe UI Variable', 'Noto Sans', 'Liberation Sans', sans-serif",
+      fontSize: 16
+    };
+    const defaultDark = {
+      bg: "#0b0f15",
+      text: "#e8eef9",
+      muted: "#90A0B7",
+      card: "#121826",
+      accent: "#6aa0ff",
+      btnBg: "#6aa0ff",
+      btnText: "#0c1117",
+      btnRadius: 12,
+      font: "system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Segoe UI Variable', 'Noto Sans', 'Liberation Sans', sans-serif",
+      fontSize: 16
+    };
+
+    function setMode(mode) {
+      document.body.setAttribute("data-theme", mode);
+      store.set(MODE_KEY, mode);
+      // Update segmented control
+      $("#btnLight").classList.toggle("active", mode === "light");
+      $("#btnDark").classList.toggle("active", mode === "dark");
+      $("#btnLight").setAttribute("aria-selected", mode === "light");
+      $("#btnDark").setAttribute("aria-selected", mode === "dark");
+      // If no custom vars saved, set inputs to defaults for the mode
+      const vars = store.get(THEME_KEY, null);
+      if (!vars) {
+        const d = mode === "light" ? defaultLight : defaultDark;
+        applyThemeVars(d);
+        reflectThemeInputs(d);
+      } else {
+        applyThemeVars(vars);
+        reflectThemeInputs(vars);
+      }
+    }
+
+    function applyThemeVars(v) {
+      const root = document.documentElement.style;
+      if (v.bg) root.setProperty("--bg", v.bg);
+      if (v.text) root.setProperty("--text", v.text);
+      if (v.muted) root.setProperty("--muted", v.muted);
+      if (v.card) root.setProperty("--card", v.card);
+      if (v.accent) root.setProperty("--accent", v.accent);
+      if (v.btnBg) root.setProperty("--btn-bg", v.btnBg);
+      if (v.btnText) root.setProperty("--btn-text", v.btnText);
+      if (typeof v.btnRadius === "number") root.setProperty("--btn-radius", v.btnRadius + "px");
+      if (v.font) root.setProperty("--font-base", v.font);
+      if (typeof v.fontSize === "number") root.setProperty("--font-size", v.fontSize + "px");
+      ensureButtonContrast();
+    }
+
+    function readThemeInputs() {
+      return {
+        accent: $("#varAccent").value,
+        bg: $("#varBg").value,
+        card: $("#varCard").value,
+        text: $("#varText").value,
+        muted: $("#varMuted").value,
+        btnBg: $("#varBtnBg").value,
+        btnText: $("#varBtnText").value,
+        btnRadius: parseInt($("#varBtnRadius").value, 10),
+        font: $("#varFont").value,
+        fontSize: parseInt($("#varFontSize").value, 10)
+      };
+    }
+
+    function reflectThemeInputs(v) {
+      $("#varAccent").value = v.accent;
+      $("#varBg").value = v.bg;
+      $("#varCard").value = v.card;
+      $("#varText").value = v.text;
+      $("#varMuted").value = v.muted;
+      $("#varBtnBg").value = v.btnBg;
+      $("#varBtnText").value = v.btnText;
+      $("#varBtnRadius").value = v.btnRadius;
+      $("#varFont").value = v.font;
+      $("#varFontSize").value = v.fontSize;
+    }
+
+    function hexToRgb(hex) {
+      hex = hex.replace("#", "");
+      if (hex.length === 3) hex = hex.split("").map(c => c + c).join("");
+      const n = parseInt(hex, 16);
+      return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+    }
+    function relativeLuminance({r,g,b}) {
+      // sRGB to linear
+      const srgb = [r,g,b].map(v => v/255).map(v => v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4));
+      return 0.2126*srgb[0] + 0.7152*srgb[1] + 0.0722*srgb[2];
+    }
+    function ensureButtonContrast() {
+      // If contrast between btn-bg and btn-text is too low, auto-pick black/white text
+      const bg = getComputedStyle(document.documentElement).getPropertyValue("--btn-bg").trim();
+      const txt = getComputedStyle(document.documentElement).getPropertyValue("--btn-text").trim();
+      let bgRGB = hexToRgb(bg.startsWith("#") ? bg : "#6aa0ff");
+      let txtRGB = hexToRgb(txt.startsWith("#") ? txt : "#000000");
+      const L1 = Math.max(relativeLuminance(bgRGB), relativeLuminance(txtRGB));
+      const L2 = Math.min(relativeLuminance(bgRGB), relativeLuminance(txtRGB));
+      const contrast = (L1 + 0.05) / (L2 + 0.05);
+      if (contrast < 4.0) {
+        // Choose black or white depending on bg luminance
+        const bgLum = relativeLuminance(bgRGB);
+        const suggested = bgLum > 0.4 ? "#0b0f15" : "#ffffff";
+        document.documentElement.style.setProperty("--btn-text", suggested);
+      }
+    }
+
+    $("#btnLight").addEventListener("click", () => setMode("light"));
+    $("#btnDark").addEventListener("click", () => setMode("dark"));
+
+    // Live theme binding
+    ["varAccent","varBg","varCard","varText","varMuted","varBtnBg","varBtnText","varBtnRadius","varFont","varFontSize"]
+      .forEach(id => {
+        const el = $("#"+id);
+        el.addEventListener("input", () => {
+          const v = readThemeInputs();
+          applyThemeVars(v);
         });
+      });
 
-        // Customization
-        const colorInputs = ['bg-color', 'text-color', 'accent-color', 'button-bg', 'button-text'];
-        colorInputs.forEach(id => {
-            const input = document.getElementById(id);
-            input.addEventListener('input', () => {
-                document.documentElement.style.setProperty(`--${id}`, input.value);
-            });
-        });
+    $("#btnSaveTheme").addEventListener("click", () => {
+      store.set(THEME_KEY, readThemeInputs());
+      ensureButtonContrast();
+      flashStatus("Theme saved");
+    });
+    $("#btnResetTheme").addEventListener("click", () => {
+      const mode = store.get(MODE_KEY, "dark");
+      const d = mode === "light" ? defaultLight : defaultDark;
+      applyThemeVars(d);
+      reflectThemeInputs(d);
+      store.set(THEME_KEY, d);
+      flashStatus("Theme reset");
+    });
 
-        const fontSelect = document.getElementById('font-family');
-        fontSelect.addEventListener('change', () => {
-            document.documentElement.style.setProperty('--font-family', fontSelect.value);
-        });
+    // Export/Import settings (theme + clocks + pomodoro + quotes)
+    $("#btnExport").addEventListener("click", () => {
+      const payload = {
+        mode: store.get(MODE_KEY, "dark"),
+        theme: store.get(THEME_KEY, null),
+        clocks: store.get("tfs_clock_settings", null),
+        pomodoro: store.get("tfs_pomodoro_settings", null),
+        quotes: store.get("tfs_user_quotes", [])
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], {type: "application/json"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "time-focus-studio-settings.json";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
 
-        function updateColorPickers() {
-            colorInputs.forEach(id => {
-                const input = document.getElementById(id);
-                input.value = getComputedStyle(document.documentElement).getPropertyValue(`--${id}`).trim();
-            });
+    $("#btnImport").addEventListener("click", async () => {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "application/json";
+      input.onchange = async () => {
+        const file = input.files?.[0];
+        if (!file) return;
+        const text = await file.text();
+        try {
+          const data = JSON.parse(text);
+          if (data.mode) store.set(MODE_KEY, data.mode);
+          if (data.theme) store.set(THEME_KEY, data.theme);
+          if (data.clocks) store.set("tfs_clock_settings", data.clocks);
+          if (data.pomodoro) store.set("tfs_pomodoro_settings", data.pomodoro);
+          if (Array.isArray(data.quotes)) store.set("tfs_user_quotes", data.quotes);
+          // Apply everything:
+          setMode(store.get(MODE_KEY, "dark"));
+          loadClockSettings();
+          loadPomodoroSettings();
+          renderUserQuotes();
+          flashStatus("Settings imported");
+        } catch {
+          flashStatus("Import failed (invalid file)");
         }
-        updateColorPickers(); // Initial set
+      };
+      input.click();
+    });
 
-        // Analog Clock
-        function drawAnalogClock() {
-            const canvas = document.getElementById('analog-clock');
-            const ctx = canvas.getContext('2d');
-            const radius = canvas.height / 2;
-            ctx.translate(radius, radius);
-            drawClock();
-            function drawClock() {
-                drawFace(ctx, radius);
-                drawNumbers(ctx, radius);
-                drawTime(ctx, radius);
-            }
-            function drawFace(ctx, radius) {
-                ctx.beginPath();
-                ctx.arc(0, 0, radius, 0, 2 * Math.PI);
-                ctx.fillStyle = 'white';
-                ctx.fill();
-                const grad = ctx.createLinearGradient(0, -radius, 0, radius);
-                grad.addColorStop(0, 'white');
-                grad.addColorStop(1, 'black');
-                ctx.strokeStyle = grad;
-                ctx.lineWidth = radius * 0.1;
-                ctx.stroke();
-                ctx.beginPath();
-                ctx.arc(0, 0, radius * 0.1, 0, 2 * Math.PI);
-                ctx.fillStyle = '#333';
-                ctx.fill();
-            }
-            function drawNumbers(ctx, radius) {
-                ctx.font = radius * 0.15 + 'px arial';
-                ctx.textBaseline = 'middle';
-                ctx.textAlign = 'center';
-                for (let num = 1; num < 13; num++) {
-                    const ang = num * Math.PI / 6;
-                    ctx.rotate(ang);
-                    ctx.translate(0, -radius * 0.85);
-                    ctx.rotate(-ang);
-                    ctx.fillText(num.toString(), 0, 0);
-                    ctx.rotate(ang);
-                    ctx.translate(0, radius * 0.85);
-                    ctx.rotate(-ang);
-                }
-            }
-            function drawTime(ctx, radius) {
-                const now = new Date();
-                let hour = now.getHours();
-                let minute = now.getMinutes();
-                let second = now.getSeconds();
-                // hour
-                hour = hour % 12;
-                hour = (hour * Math.PI / 6) + (minute * Math.PI / (6 * 60)) + (second * Math.PI / (360 * 60));
-                drawHand(ctx, hour, radius * 0.5, radius * 0.07);
-                // minute
-                minute = (minute * Math.PI / 30) + (second * Math.PI / (30 * 60));
-                drawHand(ctx, minute, radius * 0.8, radius * 0.07);
-                // second
-                second = (second * Math.PI / 30);
-                drawHand(ctx, second, radius * 0.9, radius * 0.02);
-            }
-            function drawHand(ctx, pos, length, width) {
-                ctx.beginPath();
-                ctx.lineWidth = width;
-                ctx.lineCap = 'round';
-                ctx.moveTo(0, 0);
-                ctx.rotate(pos);
-                ctx.lineTo(0, -length);
-                ctx.stroke();
-                ctx.rotate(-pos);
-            }
+    function flashStatus(text) {
+      const pill = document.createElement("div");
+      pill.textContent = text;
+      pill.style.position = "fixed";
+      pill.style.bottom = "18px";
+      pill.style.left = "50%";
+      pill.style.transform = "translateX(-50%)";
+      pill.style.padding = "10px 14px";
+      pill.style.border = "1px solid var(--border)";
+      pill.style.background = "var(--card)";
+      pill.style.color = "var(--text)";
+      pill.style.borderRadius = "999px";
+      pill.style.boxShadow = "var(--shadow)";
+      pill.style.zIndex = 1000;
+      document.body.appendChild(pill);
+      setTimeout(() => pill.remove(), 1800);
+    }
+
+    // Initial theme mode
+    setMode(store.get(MODE_KEY, "dark"));
+
+    // Clock logic
+    const CLOCK_KEY = "tfs_clock_settings";
+    const clockDefaults = {
+      tzSource: "local",
+      tzOffset: 0,
+      digitalFormat: "24",
+      digitalSeconds: true,
+      digitalBlink: true,
+      digitalShowDate: true,
+      analogSeconds: true,
+      analogSmooth: true,
+      analogNumbers: true,
+      analogFace: "#0e1524",
+      analogTicks: "#90A0B7",
+      analogHour: "#e8eef9",
+      analogMinute: "#6aa0ff",
+      analogSecond: "#ff6b6b"
+    };
+    let clockSettings = loadClockSettings();
+
+    function loadClockSettings() {
+      const saved = store.get(CLOCK_KEY, {});
+      const merged = {...clockDefaults, ...saved};
+      reflectClockInputs(merged);
+      return merged;
+    }
+    function saveClockSettings() {
+      store.set(CLOCK_KEY, clockSettings);
+    }
+    function reflectClockInputs(v) {
+      $("#clockTzSource").value = v.tzSource;
+      $("#clockTzOffset").value = v.tzOffset;
+      $("#digitalFormat").value = v.digitalFormat;
+      $("#digitalSeconds").value = String(v.digitalSeconds);
+      $("#digitalBlink").value = String(v.digitalBlink);
+      $("#digitalShowDate").value = String(v.digitalShowDate);
+      $("#analogSeconds").value = String(v.analogSeconds);
+      $("#analogSmooth").value = String(v.analogSmooth);
+      $("#analogNumbers").value = String(v.analogNumbers);
+      $("#analogFace").value = v.analogFace;
+      $("#analogTicks").value = v.analogTicks;
+      $("#analogHour").value = v.analogHour;
+      $("#analogMinute").value = v.analogMinute;
+      $("#analogSecond").value = v.analogSecond;
+    }
+    // Bind inputs
+    [
+      "clockTzSource","clockTzOffset","digitalFormat","digitalSeconds","digitalBlink","digitalShowDate",
+      "analogSeconds","analogSmooth","analogNumbers","analogFace","analogTicks","analogHour","analogMinute","analogSecond"
+    ].forEach(id => {
+      $("#"+id).addEventListener("input", () => {
+        const v = clockSettings;
+        v.tzSource = $("#clockTzSource").value;
+        v.tzOffset = parseFloat($("#clockTzOffset").value);
+        v.digitalFormat = $("#digitalFormat").value;
+        v.digitalSeconds = $("#digitalSeconds").value === "true";
+        v.digitalBlink = $("#digitalBlink").value === "true";
+        v.digitalShowDate = $("#digitalShowDate").value === "true";
+        v.analogSeconds = $("#analogSeconds").value === "true";
+        v.analogSmooth = $("#analogSmooth").value === "true";
+        v.analogNumbers = $("#analogNumbers").value === "true";
+        v.analogFace = $("#analogFace").value;
+        v.analogTicks = $("#analogTicks").value;
+        v.analogHour = $("#analogHour").value;
+        v.analogMinute = $("#analogMinute").value;
+        v.analogSecond = $("#analogSecond").value;
+        saveClockSettings();
+      });
+    });
+
+    function getNowWithOffset() {
+      const now = new Date();
+      if (clockSettings.tzSource === "local") return now;
+      const localOffsetMin = now.getTimezoneOffset();
+      const desiredOffsetMin = clockSettings.tzOffset * 60;
+      const diff = (desiredOffsetMin + localOffsetMin) * 60000;
+      return new Date(now.getTime() + diff);
+    }
+
+    // Digital clock updater
+    let blinkOn = true;
+    function formatDigital(d) {
+      let H = d.getHours(), M = d.getMinutes(), S = d.getSeconds();
+      let period = "";
+      if (clockSettings.digitalFormat === "12") {
+        period = H >= 12 ? " PM" : " AM";
+        H = H % 12; if (H === 0) H = 12;
+      }
+      const pad = n => String(n).padStart(2, "0");
+      const colon = clockSettings.digitalBlink ? (blinkOn ? ":" : " ") : ":";
+      const time = clockSettings.digitalSeconds ? `${pad(H)}${colon}${pad(M)}${colon}${pad(S)}${period}` : `${pad(H)}${colon}${pad(M)}${period}`;
+      return time;
+    }
+    function formatDateLine(d) {
+      const opts = { weekday: "long", month: "short", day: "numeric" };
+      return d.toLocaleDateString(undefined, opts);
+    }
+    function tickDigital() {
+      const now = getNowWithOffset();
+      blinkOn = !blinkOn;
+      $("#digitalTime").textContent = formatDigital(now);
+      $("#digitalDate").textContent = clockSettings.digitalShowDate ? formatDateLine(now) : "";
+    }
+    setInterval(tickDigital, 500);
+    tickDigital();
+
+    // Analog clock
+    const analogCanvas = $("#analog");
+    const ctx = analogCanvas.getContext("2d");
+
+    function resizeAnalog() {
+      const rect = analogCanvas.getBoundingClientRect();
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      analogCanvas.width = Math.floor(rect.width * dpr);
+      analogCanvas.height = Math.floor(rect.height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    new ResizeObserver(resizeAnalog).observe(analogCanvas);
+    resizeAnalog();
+
+    function drawAnalog() {
+      const rect = analogCanvas.getBoundingClientRect();
+      const w = rect.width, h = rect.height;
+      ctx.clearRect(0, 0, w, h);
+
+      const r = Math.min(w, h) / 2 - 8;
+      const cx = w / 2, cy = h / 2;
+
+      // Face
+      ctx.save();
+      // Face background
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fillStyle = clockSettings.analogFace;
+      ctx.fill();
+      // Bezel
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue("--border").trim() || "#2a2a2a";
+      ctx.stroke();
+
+      // Ticks
+      for (let i = 0; i < 60; i++) {
+        const angle = (Math.PI * 2) * (i / 60);
+        const outer = r - 6;
+        const inner = i % 5 === 0 ? outer - 10 : outer - 6;
+        ctx.beginPath();
+        ctx.lineWidth = i % 5 === 0 ? 3 : 1.5;
+        ctx.strokeStyle = clockSettings.analogTicks;
+        const sx = cx + Math.cos(angle) * inner;
+        const sy = cy + Math.sin(angle) * inner;
+        const ex = cx + Math.cos(angle) * outer;
+        const ey = cy + Math.sin(angle) * outer;
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(ex, ey);
+        ctx.stroke();
+      }
+
+      // Numbers
+      if (clockSettings.analogNumbers) {
+        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--text").trim();
+        ctx.font = "600 16px " + getComputedStyle(document.documentElement).getPropertyValue("--font-base").trim();
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        for (let n = 1; n <= 12; n++) {
+          const angle = (Math.PI * 2) * (n / 12) - Math.PI/2;
+          const nr = r - 28;
+          const nx = cx + Math.cos(angle) * nr;
+          const ny = cy + Math.sin(angle) * nr;
+          ctx.fillText(String(n), nx, ny);
         }
-        setInterval(drawAnalogClock, 1000);
-        drawAnalogClock();
+      }
 
-        // Digital Clock
-        let digitalFormat = 'HH:MM:SS';
-        const formatSelect = document.getElementById('digital-format');
-        formatSelect.addEventListener('change', () => {
-            digitalFormat = formatSelect.value;
-        });
-        function updateDigitalClock() {
-            const now = new Date();
-            let hours = now.getHours();
-            let minutes = now.getMinutes();
-            let seconds = now.getSeconds();
-            let ampm = '';
-            if (digitalFormat.includes('hh')) {
-                ampm = hours >= 12 ? 'PM' : 'AM';
-                hours = hours % 12 || 12;
-            }
-            hours = hours < 10 ? '0' + hours : hours;
-            minutes = minutes < 10 ? '0' + minutes : minutes;
-            seconds = seconds < 10 ? '0' + seconds : seconds;
-            let timeString = digitalFormat
-                .replace('HH', hours)
-                .replace('hh', hours)
-                .replace('MM', minutes)
-                .replace('SS', seconds)
-                .replace('A', ampm);
-            document.getElementById('digital-clock').textContent = timeString;
+      // Time
+      const now = getNowWithOffset();
+      const ms = now.getMilliseconds();
+      const secBase = now.getSeconds() + (clockSettings.analogSmooth ? ms/1000 : 0);
+      const minBase = now.getMinutes() + secBase/60;
+      const hourBase = (now.getHours() % 12) + minBase/60;
+
+      const hourAngle = (Math.PI * 2) * (hourBase / 12) - Math.PI/2;
+      const minAngle = (Math.PI * 2) * (minBase / 60) - Math.PI/2;
+      const secAngle = (Math.PI * 2) * (secBase / 60) - Math.PI/2;
+
+      // Hour hand
+      ctx.lineCap = "round";
+      ctx.strokeStyle = clockSettings.analogHour;
+      ctx.lineWidth = 5.5;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + Math.cos(hourAngle) * (r * 0.52), cy + Math.sin(hourAngle) * (r * 0.52));
+      ctx.stroke();
+
+      // Minute hand
+      ctx.strokeStyle = clockSettings.analogMinute;
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + Math.cos(minAngle) * (r * 0.72), cy + Math.sin(minAngle) * (r * 0.72));
+      ctx.stroke();
+
+      // Second hand
+      if (clockSettings.analogSeconds) {
+        ctx.strokeStyle = clockSettings.analogSecond;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + Math.cos(secAngle) * (r * 0.80), cy + Math.sin(secAngle) * (r * 0.80));
+        ctx.stroke();
+        // Tail
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx - Math.cos(secAngle) * (r * 0.18), cy - Math.sin(secAngle) * (r * 0.18));
+        ctx.stroke();
+      }
+
+      // Center hub
+      ctx.beginPath();
+      ctx.arc(cx, cy, 4.5, 0, Math.PI * 2);
+      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim();
+      ctx.fill();
+
+      ctx.restore();
+      requestAnimationFrame(drawAnalog);
+    }
+    requestAnimationFrame(drawAnalog);
+
+    // Pomodoro
+    const POMO_KEY = "tfs_pomodoro_settings";
+    const pomoDefaults = {
+      work: 25*60,
+      short: 5*60,
+      long: 15*60,
+      rounds: 4,
+      auto: true,
+      sound: true,
+      volume: 0.5
+    };
+    let pomoSettings = {...pomoDefaults, ...store.get(POMO_KEY, {})};
+    function loadPomodoroSettings() {
+      pomoSettings = {...pomoDefaults, ...store.get(POMO_KEY, {})};
+      $("#pWork").value = Math.round(pomoSettings.work/60);
+      $("#pShort").value = Math.round(pomoSettings.short/60);
+      $("#pLong").value = Math.round(pomoSettings.long/60);
+      $("#pRounds").value = pomoSettings.rounds;
+      $("#pAuto").value = String(pomoSettings.auto);
+      $("#pSound").value = String(pomoSettings.sound);
+      $("#pVolume").value = String(pomoSettings.volume);
+      return pomoSettings;
+    }
+    loadPomodoroSettings();
+
+    // Pomodoro state
+    let pomoMode = "work"; // "work" | "short" | "long"
+    let pomoRound = 1;
+    let pomoTotal = pomoSettings.work;
+    let pomoRemaining = pomoTotal;
+    let pomoTimer = null;
+    let pomoRunning = false;
+    let lastTick = null;
+
+    function setPomoMode(mode) {
+      pomoMode = mode;
+      pomoTotal = mode === "work" ? pomoSettings.work : (mode === "short" ? pomoSettings.short : pomoSettings.long);
+      pomoRemaining = pomoTotal;
+      updatePomoUI();
+    }
+
+    function updatePomoUI() {
+      $("#pomoMode").textContent = ({
+        work: "Work",
+        short: "Short Break",
+        long: "Long Break"
+      })[pomoMode];
+      $("#pomoRound").textContent = `Round ${pomoRound}`;
+      $("#pomoTime").textContent = formatSeconds(pomoRemaining);
+      $("#pomoStatus").textContent = pomoRunning ? "Running" : "Paused";
+      const progress = 1 - (pomoRemaining / pomoTotal);
+      $("#pomoRing").style.setProperty("--p", (progress * 100).toFixed(2));
+    }
+
+    function formatSeconds(s) {
+      s = Math.max(0, Math.floor(s));
+      const m = Math.floor(s/60), sec = s % 60;
+      return String(m).padStart(2,"0") + ":" + String(sec).padStart(2,"0");
+    }
+
+    function startPomo() {
+      if (pomoRunning) return;
+      pomoRunning = true;
+      lastTick = performance.now();
+      $("#pomoStatus").textContent = "Running";
+      pomoTimer = requestAnimationFrame(stepPomo);
+    }
+
+    function pausePomo() {
+      if (!pomoRunning) return;
+      pomoRunning = false;
+      $("#pomoStatus").textContent = "Paused";
+      if (pomoTimer) cancelAnimationFrame(pomoTimer);
+    }
+
+    function resetPomo() {
+      const wasWork = pomoMode === "work";
+      setPomoMode(pomoMode);
+      if (wasWork) pomoRound = Math.max(1, pomoRound);
+      updatePomoUI();
+    }
+
+    function skipPomo() {
+      completeSession();
+    }
+
+    function stepPomo(ts) {
+      const dt = (ts - lastTick) / 1000;
+      lastTick = ts;
+      if (pomoRunning) {
+        pomoRemaining -= dt;
+        if (pomoRemaining <= 0) {
+          pomoRemaining = 0;
+          updatePomoUI();
+          completeSession();
+          return;
         }
-        setInterval(updateDigitalClock, 1000);
-        updateDigitalClock();
+        updatePomoUI();
+        pomoTimer = requestAnimationFrame(stepPomo);
+      }
+    }
 
-        // Pomodoro Timer
-        let pomodoroInterval;
-        let pomodoroTime = 25 * 60; // 25 minutes
-        let isWork = true;
-        const timerDisplay = document.getElementById('pomodoro-timer');
-        const status = document.getElementById('pomodoro-status');
-
-        function updateTimerDisplay() {
-            const minutes = Math.floor(pomodoroTime / 60);
-            const seconds = pomodoroTime % 60;
-            timerDisplay.textContent = `${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    function completeSession() {
+      pausePomo();
+      signalEnd();
+      // Advance cycle
+      if (pomoMode === "work") {
+        if (pomoRound % pomoSettings.rounds === 0) {
+          setPomoMode("long");
+        } else {
+          setPomoMode("short");
         }
+      } else {
+        // from break to next work
+        pomoRound += 1;
+        setPomoMode("work");
+      }
+      updatePomoUI();
+      if (pomoSettings.auto) {
+        setTimeout(startPomo, 400);
+      }
+    }
 
-        document.getElementById('start-pomodoro').addEventListener('click', () => {
-            if (!pomodoroInterval) {
-                pomodoroInterval = setInterval(() => {
-                    if (pomodoroTime > 0) {
-                        pomodoroTime--;
-                        updateTimerDisplay();
-                    } else {
-                        clearInterval(pomodoroInterval);
-                        pomodoroInterval = null;
-                        alert(isWork ? 'Work session over! Take a break.' : 'Break over! Back to work.');
-                        isWork = !isWork;
-                        status.textContent = isWork ? 'Work Session' : 'Break Session';
-                        pomodoroTime = isWork ? 25 * 60 : 5 * 60;
-                        updateTimerDisplay();
-                    }
-                }, 1000);
-            }
-        });
+    function signalEnd() {
+      // Sound via Web Audio API
+      if (pomoSettings.sound) {
+        beepPattern(pomoSettings.volume);
+      }
+      // Desktop notification
+      if (Notification && Notification.permission === "granted") {
+        const title = pomoMode === "work" ? "Break time!" : "Back to work!";
+        const body = pomoMode === "work"
+          ? "Great job. Take a breather."
+          : "Let’s focus for the next session.";
+        try {
+          new Notification(title, { body });
+        } catch {}
+      }
+    }
 
-        document.getElementById('stop-pomodoro').addEventListener('click', () => {
-            clearInterval(pomodoroInterval);
-            pomodoroInterval = null;
-        });
+    function beepPattern(vol=0.5) {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const play = (t, freq, dur) => {
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = "sine";
+        o.frequency.value = freq;
+        o.connect(g);
+        g.connect(ctx.destination);
+        g.gain.value = vol;
+        o.start(ctx.currentTime + t);
+        o.stop(ctx.currentTime + t + dur);
+      };
+      play(0.00, 880, 0.12);
+      play(0.17, 660, 0.10);
+      play(0.30, 990, 0.14);
+      setTimeout(() => ctx.close(), 1200);
+    }
 
-        document.getElementById('reset-pomodoro').addEventListener('click', () => {
-            clearInterval(pomodoroInterval);
-            pomodoroInterval = null;
-            isWork = true;
-            status.textContent = 'Work Session';
-            pomodoroTime = 25 * 60;
-            updateTimerDisplay();
-        });
-
-        updateTimerDisplay();
-
-        // Motivational Quote
-        async function fetchQuote() {
-            try {
-                const response = await fetch('https://api.quotable.io/quotes/random?tags=inspirational|motivational');
-                const data = await response.json();
-                document.getElementById('motivational-quote').textContent = data[0].content + ' — ' + data[0].author;
-            } catch (error) {
-                document.getElementById('motivational-quote').textContent = 'Your story is what you have, what you will always have. It is something to own.';
-            }
+    // Bind Pomodoro controls
+    $("#pomoStart").addEventListener("click", startPomo);
+    $("#pomoPause").addEventListener("click", pausePomo);
+    $("#pomoReset").addEventListener("click", resetPomo);
+    $("#pomoSkip").addEventListener("click", skipPomo);
+    // Keyboard: Space toggles start/pause
+    window.addEventListener("keydown", (e) => {
+      if (e.code === "Space" && !e.repeat) {
+        e.preventDefault();
+        if (pomoRunning) pausePomo(); else startPomo();
+      }
+    });
+    // Settings
+    $("#pWork").addEventListener("input", () => {
+      pomoSettings.work = clamp(parseInt($("#pWork").value, 10)*60, 60, 60*180);
+      store.set(POMO_KEY, pomoSettings); if (pomoMode==="work") resetPomo();
+    });
+    $("#pShort").addEventListener("input", () => {
+      pomoSettings.short = clamp(parseInt($("#pShort").value, 10)*60, 60, 60*60);
+      store.set(POMO_KEY, pomoSettings); if (pomoMode==="short") resetPomo();
+    });
+    $("#pLong").addEventListener("input", () => {
+      pomoSettings.long = clamp(parseInt($("#pLong").value, 10)*60, 60, 60*120);
+      store.set(POMO_KEY, pomoSettings); if (pomoMode==="long") resetPomo();
+    });
+    $("#pRounds").addEventListener("input", () => {
+      pomoSettings.rounds = clamp(parseInt($("#pRounds").value, 10), 1, 12);
+      store.set(POMO_KEY, pomoSettings);
+    });
+    $("#pAuto").addEventListener("input", () => {
+      pomoSettings.auto = $("#pAuto").value === "true";
+      store.set(POMO_KEY, pomoSettings);
+    });
+    $("#pSound").addEventListener("input", () => {
+      pomoSettings.sound = $("#pSound").value === "true";
+      store.set(POMO_KEY, pomoSettings);
+    });
+    $("#pVolume").addEventListener("input", () => {
+      pomoSettings.volume = parseFloat($("#pVolume").value);
+      store.set(POMO_KEY, pomoSettings);
+    });
+    $("#pNotify").addEventListener("click", async () => {
+      try {
+        if (!("Notification" in window)) {
+          flashStatus("Notifications not supported");
+          return;
         }
-        fetchQuote();
-        setInterval(fetchQuote, 3600000); // Every hour
-    </script>
+        const perm = await Notification.requestPermission();
+        flashStatus(perm === "granted" ? "Notifications enabled" : "Notifications blocked");
+      } catch {
+        flashStatus("Notification request failed");
+      }
+    });
+    updatePomoUI();
+
+    // Motivational Texts (procedural, unlimited variations)
+    const QUOTES_KEY = "tfs_user_quotes";
+    const baseQuotes = [
+      "Your story is what you have, what you will always have. It is something to own.",
+      "Small steps done daily become great distances over time.",
+      "Progress is progress, even when it’s not perfect.",
+      "Discipline beats motivation when motivation hides.",
+      "Start where you are. Use what you have. Do what you can.",
+      "You don’t have to be extreme—just consistent.",
+      "Your future is built by choices, not chances.",
+      "The obstacle is the way.",
+      "Tiny improvements compound into remarkable results.",
+      "Your pace is valid. Keep going."
+    ];
+    // Procedural components to generate unlimited combinations
+    const fragments = {
+      openers: [
+        "Your story", "Your potential", "Your journey", "Your effort", "Your growth",
+        "This moment", "Today", "Right now", "The next step", "The choice you make"
+      ],
+      verbs: [
+        "defines", "shapes", "sets", "builds", "unlocks", "guides", "elevates", "anchors"
+      ],
+      nouns: [
+        "your future", "your path", "your momentum", "your results", "your craft",
+        "your confidence", "your skill", "your resilience"
+      ],
+      prompts: [
+        "own it", "lean in", "keep going", "trust the process", "show up",
+        "start small", "begin again", "focus on what matters", "embrace the effort",
+        "take the next step"
+      ],
+      closers: [
+        "One hour at a time.", "One step at a time.", "Make it count.",
+        "You’ve got this.", "Be proudly consistent.", "Progress over perfection.",
+        "Let the work speak.", "Little by little becomes a lot."
+      ],
+      bridges: [
+        "and", "because", "so", "therefore", "which means"
+      ],
+      adjectives: [
+        "quiet", "steady", "deliberate", "courageous", "curious", "bold",
+        "relentless", "patient", "hopeful", "purposeful"
+      ],
+      values: [
+        "clarity", "focus", "effort", "consistency", "attention",
+        "kindness", "discipline", "curiosity"
+      ]
+    };
+
+    function mulberry32(a) {
+      return function() {
+        let t = a += 0x6D2B79F5;
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      }
+    }
+    function seededPick(rng, arr) {
+      return arr[Math.floor(rng() * arr.length)];
+    }
+    function generateQuote(seed) {
+      const rng = mulberry32(seed);
+      // 30% chance to use a curated base quote
+      if (rng() < 0.30) {
+        return seededPick(rng, baseQuotes);
+      }
+      // 15% chance to use user quotes if any
+      const u = store.get(QUOTES_KEY, []);
+      if (u.length && rng() < 0.15) {
+        return seededPick(rng, u);
+      }
+      // Template-driven generation
+      const A = seededPick(rng, fragments.openers);
+      const B = seededPick(rng, fragments.verbs);
+      const C = seededPick(rng, fragments.nouns);
+      const D = seededPick(rng, fragments.bridges);
+      const E = seededPick(rng, fragments.adjectives);
+      const F = seededPick(rng, fragments.values);
+      const P = seededPick(rng, fragments.prompts);
+      const Z = seededPick(rng, fragments.closers);
+
+      const templates = [
+        `${A} ${B} ${C}—${P}. ${Z}`,
+        `${A} is ${E} work. Choose ${F}, ${P}. ${Z}`,
+        `${A} ${D} ${C}. Stay ${E} and ${P}. ${Z}`,
+        `${A} ${B} ${C}. ${Z}`,
+        `${A}. ${P}. ${Z}`,
+        `${A} is yours—${P}. ${Z}`
+      ];
+      return seededPick(rng, templates);
+    }
+    function currentHourSeed() {
+      const now = new Date();
+      // Seed stable for the local hour
+      return now.getFullYear()*1e6 + (now.getMonth()+1)*1e4 + now.getDate()*1e2 + now.getHours();
+    }
+    function updateQuoteByHour(force=false) {
+      const hourSeed = currentHourSeed();
+      const last = updateQuoteByHour._lastSeed;
+      if (force || last !== hourSeed) {
+        const q = generateQuote(hourSeed);
+        $("#quoteText").textContent = q;
+        updateQuoteByHour._lastSeed = hourSeed;
+      }
+    }
+    updateQuoteByHour(true);
+    // Check every minute to roll over at top of hour
+    setInterval(() => updateQuoteByHour(false), 60*1000);
+
+    // Quotes UI
+    function renderUserQuotes() {
+      const list = store.get(QUOTES_KEY, []);
+      const wrap = $("#userQuotesWrap");
+      if (!list.length) {
+        wrap.innerHTML = "<em>No custom messages yet.</em>";
+        return;
+      }
+      wrap.innerHTML = "";
+      list.forEach((q, i) => {
+        const row = document.createElement("div");
+        row.style.display = "flex";
+        row.style.alignItems = "center";
+        row.style.justifyContent = "space-between";
+        row.style.gap = "8px";
+        row.style.padding = "6px 0";
+        const span = document.createElement("span");
+        span.style.color = "var(--text)";
+        span.textContent = q;
+        const del = document.createElement("button");
+        del.className = "btn small secondary";
+        del.textContent = "Remove";
+        del.addEventListener("click", () => {
+          const arr = store.get(QUOTES_KEY, []);
+          arr.splice(i,1);
+          store.set(QUOTES_KEY, arr);
+          renderUserQuotes();
+          flashStatus("Removed");
+        });
+        row.appendChild(span);
+        row.appendChild(del);
+        wrap.appendChild(row);
+      });
+    }
+    renderUserQuotes();
+
+    $("#btnShuffle").addEventListener("click", () => {
+      // Shuffle uses a random seed so user can explore
+      const seed = Math.floor(Math.random()*1e9);
+      $("#quoteText").textContent = generateQuote(seed);
+    });
+    $("#btnCopy").addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText($("#quoteText").textContent.trim());
+        flashStatus("Copied to clipboard");
+      } catch {
+        flashStatus("Copy failed");
+      }
+    });
+    $("#btnAddQuote").addEventListener("click", () => {
+      const details = $("#motivation details");
+      details.open = true;
+      $("#newQuote").focus();
+    });
+    $("#saveQuote").addEventListener("click", () => {
+      const val = $("#newQuote").value.trim();
+      if (!val) return;
+      const arr = store.get(QUOTES_KEY, []);
+      arr.push(val);
+      store.set(QUOTES_KEY, arr);
+      $("#newQuote").value = "";
+      renderUserQuotes();
+      flashStatus("Saved");
+    });
+    $("#clearQuotes").addEventListener("click", () => {
+      if (confirm("Clear all your custom messages?")) {
+        store.set(QUOTES_KEY, []);
+        renderUserQuotes();
+        flashStatus("Cleared");
+      }
+    });
+
+    // Enhance accessibility: announce time every minute (optional)
+    // Commented out by default; uncomment for screen-reader periodic updates.
+    // setInterval(() => { $("#digitalTime").setAttribute("aria-live", "polite"); }, 60*1000);
+
+    // On load, ensure UI reflects storage
+    function initOnLoad() {
+      // Theme already initialized
+      // Clocks reflect settings continually via intervals/RAF
+
+      // Ensure date visibility toggles the element spacing
+      const dateEl = $("#digitalDate");
+      const observer = new MutationObserver(() => {
+        dateEl.style.display = clockSettings.digitalShowDate ? "block" : "none";
+      });
+      observer.observe(dateEl, { childList: true, characterData: true, subtree: true });
+
+      // Ensure analog canvas starts drawing on first frame (already done)
+    }
+    initOnLoad();
+
+    // Resize ring size slightly on small screens
+    function adaptRingSize() {
+      const ring = $("#pomoRing");
+      const w = window.innerWidth;
+      const size = w < 420 ? 200 : (w < 360 ? 180 : 220);
+      ring.style.setProperty("--size", size + "px");
+    }
+    window.addEventListener("resize", adaptRingSize);
+    adaptRingSize();
+  </script>
 </body>
 </html>
