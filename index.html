@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <title>Jam + Pomodoro + Motivasi</title>
+  <style>
+    :root {
+      --bg: #f7f7fb;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #5b6474;
+      --border: #e6e8ef;
+      --accent: #6c5ce7;
+      --accent-contrast: #ffffff;
+      --success: #16a34a;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --radius: 12px;
+      --ring: 0 0 0 1px var(--border), 0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.05);
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+      --font: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      --font-serif: Georgia, "Times New Roman", Times, serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --clock-size: clamp(220px, 50vw, 340px);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0b1020;
+        --card: #0f162d;
+        --text: #e6e9f2;
+        --muted: #a0a7bb;
+        --border: #1b2442;
+        --ring: 0 0 0 1px var(--border), 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.25);
+        --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
+        --shadow-md: 0 4px 16px rgba(0,0,0,0.35);
+      }
+    }
+    [data-theme="light"] {
+      --bg: #f7f7fb;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #5b6474;
+      --border: #e6e8ef;
+      --ring: 0 0 0 1px var(--border), 0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.05);
+      color-scheme: light;
+    }
+    [data-theme="dark"] {
+      --bg: #0b1020;
+      --card: #0f162d;
+      --text: #e6e9f2;
+      --muted: #a0a7bb;
+      --border: #1b2442;
+      --ring: 0 0 0 1px var(--border), 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.25);
+      color-scheme: dark;
+    }
+    * { box-sizing: border-box }
+    html, body {
+      height: 100%;
+      background: radial-gradient(1500px 800px at 10% -10%, color-mix(in oklab, var(--accent) 6%, transparent), transparent),
+                  radial-gradient(1000px 400px at 90% 10%, color-mix(in oklab, var(--accent) 6%, transparent), transparent),
+                  var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    a { color: var(--accent); text-decoration: none }
+    a:hover { text-decoration: underline }
+    .container {
+      max-width: 1100px;
+      padding: 24px clamp(12px, 3vw, 24px);
+      margin: 0 auto;
+      display: grid;
+      gap: 20px;
+    }
+    header.appbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      justify-content: space-between;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+    .brand .logo {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background:
+        conic-gradient(from 0deg, color-mix(in oklab, var(--accent) 90%, #fff) 0 25%, color-mix(in oklab, var(--accent) 70%, #000) 25% 50%, color-mix(in oklab, var(--accent) 50%, #000) 50% 75%, var(--accent) 75% 100%);
+      box-shadow: var(--shadow-md);
+      position: relative;
+      isolation: isolate;
+    }
+    .brand .logo::after {
+      content: "";
+      position: absolute; inset: 3px;
+      background: var(--card);
+      border-radius: 8px;
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent);
+    }
+    .toolbar {
+      display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end;
+    }
+    .btn {
+      -webkit-tap-highlight-color: transparent;
+      appearance: none;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      font-weight: 600;
+      font-size: 14px;
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
+      transition: transform .06s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease, color .2s ease;
+    }
+    .btn:hover { transform: translateY(-1px); box-shadow: var(--ring) }
+    .btn:active { transform: translateY(0) scale(.98) }
+    .btn.primary {
+      background: var(--accent); color: var(--accent-contrast);
+      border-color: color-mix(in srgb, var(--accent) 70%, black);
+    }
+    .btn.ghost {
+      background: transparent;
+      border-color: var(--border);
+    }
+    .btn.inline {
+      padding: 6px 10px; font-weight: 600; font-size: 13px;
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: calc(var(--radius) + 2px);
+      padding: 16px;
+      box-shadow: var(--ring);
+    }
+    .grid {
+      display: grid; gap: 20px;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 920px) {
+      .grid { grid-template-columns: 1.1fr 0.9fr; }
+    }
+    .section-title {
+      font-size: 14px; text-transform: uppercase; letter-spacing: 0.16em; color: var(--muted);
+      margin-bottom: 8px; font-weight: 800;
+    }
+    .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap }
+    .controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap }
+    .field {
+      display: grid; gap: 6px; min-width: 160px;
+    }
+    .label { font-size: 12px; color: var(--muted); font-weight: 700; letter-spacing: .06em; text-transform: uppercase }
+    .input, select, input[type="color"] {
+      appearance: none;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: calc(var(--radius) - 4px);
+      padding: 10px 12px;
+      color: var(--text);
+      box-shadow: var(--shadow-sm);
+      font: inherit;
+    }
+    details.customizer summary {
+      cursor: pointer; list-style: none; margin: 0; padding: 0; outline: none;
+      font-weight: 700; color: var(--text);
+    }
+    details.customizer summary::-webkit-details-marker { display: none }
+    details.customizer {
+      background: var(--card); border: 1px solid var(--border); border-radius: calc(var(--radius) + 2px);
+      padding: 14px 14px;
+      box-shadow: var(--ring);
+    }
+    details.customizer .content { margin-top: 12px; display: grid; gap: 12px }
+    .split {
+      display: grid; gap: 12px; grid-template-columns: 1fr;
+    }
+    @media (min-width: 640px) {
+      .split { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* Clock area */
+    .clock-card {
+      display: grid; gap: 16px;
+      align-items: center;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 560px) {
+      .clock-card { grid-template-columns: auto 1fr; }
+    }
+    .analog-wrap {
+      display: grid; place-items: center;
+    }
+    .analog {
+      position: relative;
+      width: var(--clock-size); height: var(--clock-size);
+      border-radius: 999px;
+      background:
+        radial-gradient(120px 60px at 50% 30%, color-mix(in oklab, white 6%, var(--card)), var(--card)),
+        conic-gradient(from 0deg, color-mix(in srgb, var(--accent) 10%, transparent) 0 90deg, transparent 90deg 180deg, color-mix(in srgb, var(--accent) 6%, transparent) 180deg 270deg, transparent 270deg 360deg);
+      border: 1px solid var(--border);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 10%, transparent), var(--ring);
+      overflow: hidden;
+      isolation: isolate;
+    }
+    .analog .ticks {
+      position: absolute; inset: 0; border-radius: 50%;
+      background:
+        repeating-conic-gradient(var(--muted) 0 1deg, transparent 1deg 6deg),
+        repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--text) 70%, transparent) 0 2deg, transparent 2deg 30deg);
+      mask: radial-gradient(circle at center, transparent 0 calc(50% - 8px), black calc(50% - 8px));
+      opacity: .15;
+      pointer-events: none;
+    }
+    .analog.classic .ticks { opacity: .25 }
+    .analog .numbers { position: absolute; inset: 0; }
+    .analog .numbers span {
+      position: absolute; inset: 0;
+      display: grid; place-items: center;
+      font-weight: 800; color: color-mix(in srgb, var(--text) 90%, transparent);
+      opacity: .85; user-select: none; pointer-events: none;
+      font-size: clamp(12px, 2.2vw, 16px);
+    }
+    .analog.minimal .numbers { display: none }
+    .hand {
+      position: absolute; left: 50%; top: 50%;
+      transform-origin: 50% 100%;
+      transform: translate(-50%, -100%) rotate(0deg);
+      will-change: transform;
+      filter: drop-shadow(0 1px 1px rgba(0,0,0,.15));
+    }
+    .hand.hour {
+      width: 8px; height: calc(var(--clock-size) * 0.28);
+      background: color-mix(in srgb, var(--text) 80%, transparent);
+      border-radius: 8px;
+    }
+    .hand.minute {
+      width: 6px; height: calc(var(--clock-size) * 0.36);
+      background: color-mix(in srgb, var(--text) 70%, transparent);
+      border-radius: 6px;
+    }
+    .hand.second {
+      width: 3px; height: calc(var(--clock-size) * 0.40);
+      background: var(--accent);
+      border-radius: 3px;
+    }
+    .pin {
+      position: absolute; left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      width: 16px; height: 16px; border-radius: 999px;
+      background: var(--accent);
+      box-shadow: inset 0 0 0 3px var(--card), 0 4px 8px rgba(0,0,0,.2);
+      z-index: 10;
+    }
+    .digital {
+      display: grid; gap: 8px;
+      align-self: center;
+    }
+    .digital .time {
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 1.2px;
+      font-weight: 800;
+      font-size: clamp(28px, 5.2vw, 48px);
+    }
+    .digital .date {
+      color: var(--muted);
+      font-size: clamp(13px, 2.4vw, 15px);
+      font-weight: 600;
+    }
+    .tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px }
+    .tag {
+      padding: 6px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, var(--accent) 7%, var(--card));
+      color: color-mix(in srgb, var(--text) 90%, transparent);
+      font-size: 12px; font-weight: 700;
+    }
+
+    /* Pomodoro */
+    .pomodoro {
+      display: grid; gap: 12px;
+    }
+    .ring {
+      display: grid; place-items: center;
+      width: 240px; height: 240px;
+      margin: 0 auto;
+      position: relative;
+    }
+    .ring svg { width: 100%; height: 100%; transform: rotate(-90deg) }
+    .ring .timeleft {
+      position: absolute; inset: 0;
+      display: grid; place-items: center; text-align: center;
+      gap: 8px;
+    }
+    .timeleft .big {
+      font-weight: 900; letter-spacing: 1.2px;
+      font-size: clamp(28px, 8vw, 48px);
+      font-variant-numeric: tabular-nums;
+    }
+    .timeleft .phase {
+      font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .2em; font-size: 12px;
+    }
+    .pom-controls { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap }
+    .chips { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap }
+    .chip {
+      padding: 8px 10px; border-radius: 999px; font-weight: 700; font-size: 13px;
+      border: 1px solid var(--border); background: var(--card); cursor: pointer;
+    }
+    .chip.active { background: var(--accent); color: var(--accent-contrast); border-color: color-mix(in srgb, var(--accent) 70%, black) }
+    .small {
+      font-size: 12px; color: var(--muted); text-align: center;
+    }
+    .settings-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+    }
+    @media (max-width: 420px) {
+      .settings-grid { grid-template-columns: 1fr 1fr; }
+    }
+    .inline-field {
+      display: grid; gap: 6px;
+    }
+    .inline-field input[type="number"] { width: 100%; }
+    .switch {
+      display: inline-flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;
+    }
+    .switch input { display: none }
+    .switch .knob {
+      width: 40px; height: 24px; border-radius: 999px; background: color-mix(in srgb, var(--muted) 30%, transparent);
+      border: 1px solid var(--border); position: relative; transition: background .2s ease, border-color .2s ease;
+    }
+    .switch .knob::after {
+      content:""; position: absolute; left: 2px; top: 2px; width: 18px; height: 18px; border-radius: 999px;
+      background: var(--card); box-shadow: var(--shadow-sm); transition: transform .2s ease;
+    }
+    .switch input:checked + .knob { background: var(--accent); border-color: color-mix(in srgb, var(--accent) 70%, black) }
+    .switch input:checked + .knob::after { transform: translateX(16px) }
+
+    /* Motivation */
+    .quote {
+      font-size: clamp(16px, 2.6vw, 20px);
+      font-weight: 600;
+      line-height: 1.5;
+    }
+    .quote em { font-style: normal; color: var(--accent) }
+    .quote-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: space-between }
+    .muted { color: var(--muted) }
+    .hr {
+      height: 1px; background: var(--border); border: none; margin: 8px 0;
+    }
+    .footer {
+      text-align: center; color: var(--muted); font-size: 12px; padding: 8px 0 20px;
+    }
+    /* Utilities */
+    .spacer { flex: 1 }
+    .sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0 }
+    .danger { color: var(--danger) }
+  </style>
+</head>
+<body>
+  <div class="container" id="app">
+    <header class="appbar">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <div style="font-size: 12px; color: var(--muted); font-weight: 800; letter-spacing: .18em; text-transform: uppercase;">Time · Focus · Inspire</div>
+          <div style="font-size: 18px;">Jam + Pomodoro + Motivasi</div>
+        </div>
+      </div>
+      <div class="toolbar">
+        <button class="btn inline" id="themeToggle" aria-label="Toggle tema">🌗 Tema</button>
+        <button class="btn inline" id="openCustomize" aria-controls="customizer">🎨 Kustomisasi</button>
+      </div>
+    </header>
+
+    <details class="customizer panel customizer" id="customizer">
+      <summary><span style="font-weight:800">Kustomisasi Tampilan</span> <span class="muted">· Warna aksen, font, radius tombol, dan lainnya</span></summary>
+      <div class="content">
+        <div class="split">
+          <div class="field">
+            <label class="label" for="accentColor">Warna Aksen</label>
+            <input type="color" id="accentColor" value="#6c5ce7" />
+          </div>
+          <div class="field">
+            <label class="label" for="fontFamily">Font</label>
+            <select id="fontFamily">
+              <option value="sans">Sans (System)</option>
+              <option value="serif">Serif (Georgia)</option>
+              <option value="mono">Monospace</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="label" for="radiusRange">Radius Tombol</label>
+            <input type="range" id="radiusRange" min="6" max="20" step="1" />
+          </div>
+          <div class="field">
+            <label class="label" for="uiScale">Skala UI</label>
+            <input type="range" id="uiScale" min="90" max="115" value="100" />
+          </div>
+        </div>
+        <div class="row">
+          <button class="btn ghost inline" id="resetTheme">↺ Reset Tema</button>
+          <span class="muted">Preferensi disimpan otomatis.</span>
+        </div>
+      </div>
+    </details>
+
+    <div class="grid">
+      <!-- Left: Clocks -->
+      <section class="panel">
+        <div class="section-title">Jam</div>
+        <div class="clock-card">
+          <div class="analog-wrap">
+            <div class="analog classic" id="analog">
+              <div class="ticks" aria-hidden="true"></div>
+              <div class="numbers" id="numbers" aria-hidden="true"></div>
+              <div class="hand hour" id="hourHand" aria-hidden="true"></div>
+              <div class="hand minute" id="minuteHand" aria-hidden="true"></div>
+              <div class="hand second" id="secondHand" aria-hidden="true"></div>
+              <div class="pin" aria-hidden="true"></div>
+              <span class="sr-only" id="analogLabel">Jam analog</span>
+            </div>
+          </div>
+          <div class="digital">
+            <div class="time" id="digitalTime">00:00:00</div>
+            <div class="date" id="digitalDate">—</div>
+            <div class="tags" id="clockTags"></div>
+            <hr class="hr" />
+            <div class="controls">
+              <div class="field" style="min-width: 200px;">
+                <label for="timeZone" class="label">Zona Waktu</label>
+                <select id="timeZone" aria-label="Zona waktu"></select>
+              </div>
+              <div class="field">
+                <label class="label" for="timeFormat">Format Waktu</label>
+                <select id="timeFormat">
+                  <option value="24">24 jam</option>
+                  <option value="12">12 jam</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="label" for="showSeconds">Detik</label>
+                <label class="switch"><input type="checkbox" id="showSeconds" checked /><span class="knob" aria-hidden="true"></span></label>
+              </div>
+              <div class="field">
+                <label class="label" for="analogStyle">Gaya Analog</label>
+                <select id="analogStyle">
+                  <option value="classic">Klasik</option>
+                  <option value="minimal">Minimal</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right: Pomodoro -->
+      <section class="panel pomodoro">
+        <div class="section-title">Pomodoro</div>
+        <div class="chips" role="tablist" aria-label="Mode Pomodoro">
+          <button class="chip active" data-mode="focus" id="chipFocus">Fokus</button>
+          <button class="chip" data-mode="short" id="chipShort">Istirahat Singkat</button>
+          <button class="chip" data-mode="long" id="chipLong">Istirahat Panjang</button>
+        </div>
+        <div class="ring">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <defs>
+              <linearGradient id="grad">
+                <stop offset="0%" stop-color="var(--accent)"/>
+                <stop offset="100%" stop-color="color-mix(in srgb, var(--accent) 60%, #00f)"/>
+              </linearGradient>
+            </defs>
+            <circle cx="60" cy="60" r="52" fill="none" stroke="color-mix(in srgb, var(--accent) 12%, var(--border))" stroke-width="10"></circle>
+            <circle id="progress" cx="60" cy="60" r="52" fill="none" stroke="url(#grad)" stroke-width="10" stroke-linecap="round" stroke-dasharray="326.7256" stroke-dashoffset="326.7256"></circle>
+          </svg>
+          <div class="timeleft">
+            <div class="phase" id="phaseLabel">Fokus</div>
+            <div class="big" id="pomTime">25:00</div>
+            <div class="small" id="pomInfo">Sesi 0 · Auto: Mati</div>
+          </div>
+        </div>
+        <div class="pom-controls">
+          <button class="btn primary" id="pomStart">▶ Mulai</button>
+          <button class="btn" id="pomPause" disabled>⏸ Jeda</button>
+          <button class="btn ghost" id="pomReset">⟲ Reset</button>
+          <button class="btn ghost" id="pomSkip">⤼ Lewati</button>
+        </div>
+        <div class="settings-grid">
+          <div class="inline-field">
+            <label class="label" for="durFocus">Fokus (mnt)</label>
+            <input class="input" type="number" id="durFocus" min="1" max="120" value="25" />
+          </div>
+          <div class="inline-field">
+            <label class="label" for="durShort">Ist. Singkat (mnt)</label>
+            <input class="input" type="number" id="durShort" min="1" max="60" value="5" />
+          </div>
+          <div class="inline-field">
+            <label class="label" for="durLong">Ist. Panjang (mnt)</label>
+            <input class="input" type="number" id="durLong" min="1" max="120" value="15" />
+          </div>
+          <div class="inline-field">
+            <label class="label" for="longEvery">Pjg tiap (sesi)</label>
+            <input class="input" type="number" id="longEvery" min="2" max="12" value="4" />
+          </div>
+          <div class="inline-field">
+            <label class="label" for="autoStart">Auto Mulai</label>
+            <label class="switch"><input type="checkbox" id="autoStart" /><span class="knob" aria-hidden="true"></span></label>
+          </div>
+          <div class="inline-field">
+            <label class="label" for="notify">Notifikasi</label>
+            <label class="switch"><input type="checkbox" id="notify" /><span class="knob" aria-hidden="true"></span></label>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Motivation -->
+    <section class="panel">
+      <div class="section-title">Motivation (EN)</div>
+      <div class="quote" id="quoteText">
+        <strong>Start.</strong> Your story is what you have, what you will always have. It is something to own.
+      </div>
+      <div class="quote-controls" style="margin-top:10px;">
+        <div class="row">
+          <button class="btn inline" id="newQuote">🔄 Acak Sekarang</button>
+          <button class="btn inline" id="copyQuote">📋 Salin</button>
+        </div>
+        <div class="muted" id="quoteStatus">Otomatis berganti tiap 1 jam · 00:00:00 menuju ganti berikutnya</div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      Offline-first. Preferensi disimpan di browser Anda. Tidak ada data yang dikirim keluar.
+    </footer>
+  </div>
+
+  <script>
+    ;(() => {
+      const $ = (sel, root = document) => root.querySelector(sel);
+      const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+      // Persistent state
+      const store = {
+        get(k, def) {
+          try { const v = localStorage.getItem(k); return v === null ? def : JSON.parse(v) } catch(e){ return def }
+        },
+        set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)) } catch(e){} }
+      };
+
+      // THEME
+      const themeToggle = $('#themeToggle');
+      const customizer = $('#customizer');
+      const openCustomize = $('#openCustomize');
+      const accentColor = $('#accentColor');
+      const fontFamily = $('#fontFamily');
+      const radiusRange = $('#radiusRange');
+      const uiScale = $('#uiScale');
+      const resetTheme = $('#resetTheme');
+
+      const themeState = store.get('themeState', {
+        mode: 'system', // system | light | dark
+        accent: '#6c5ce7',
+        font: 'sans', // sans | serif | mono
+        radius: 12,
+        scale: 100
+      });
+
+      function applyTheme() {
+        const root = document.documentElement;
+        // mode
+        root.removeAttribute('data-theme');
+        if (themeState.mode === 'light') root.setAttribute('data-theme', 'light');
+        if (themeState.mode === 'dark') root.setAttribute('data-theme', 'dark');
+        // accent
+        root.style.setProperty('--accent', themeState.accent);
+        // font
+        if (themeState.font === 'sans') root.style.setProperty('--font', 'system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"');
+        if (themeState.font === 'serif') root.style.setProperty('--font', 'Georgia, "Times New Roman", Times, serif');
+        if (themeState.font === 'mono') root.style.setProperty('--font', 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace');
+        // radius
+        root.style.setProperty('--radius', themeState.radius + 'px');
+        // scale
+        root.style.setProperty('font-size', themeState.scale + '%');
+
+        // update controls
+        accentColor.value = themeState.accent;
+        fontFamily.value = themeState.font;
+        radiusRange.value = themeState.radius;
+        uiScale.value = themeState.scale;
+      }
+      applyTheme();
+
+      themeToggle.addEventListener('click', () => {
+        const current = document.documentElement.getAttribute('data-theme') || 'system';
+        if (current === 'dark') themeState.mode = 'light';
+        else if (current === 'light') themeState.mode = 'system';
+        else themeState.mode = 'dark';
+        store.set('themeState', themeState);
+        applyTheme();
+        themeToggle.textContent = (document.documentElement.getAttribute('data-theme') || 'system') === 'dark' ? '🌞 Terang' : '🌗 Tema';
+      });
+
+      openCustomize.addEventListener('click', () => {
+        customizer.open = true;
+        customizer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+      accentColor.addEventListener('input', e => { themeState.accent = e.target.value; store.set('themeState', themeState); applyTheme(); });
+      fontFamily.addEventListener('change', e => { themeState.font = e.target.value; store.set('themeState', themeState); applyTheme(); });
+      radiusRange.addEventListener('input', e => { themeState.radius = +e.target.value; store.set('themeState', themeState); applyTheme(); });
+      uiScale.addEventListener('input', e => { themeState.scale = +e.target.value; store.set('themeState', themeState); applyTheme(); });
+      resetTheme.addEventListener('click', () => {
+        themeState.mode = 'system';
+        themeState.accent = '#6c5ce7';
+        themeState.font = 'sans';
+        themeState.radius = 12;
+        themeState.scale = 100;
+        store.set('themeState', themeState);
+        applyTheme();
+      });
+
+      // CLOCKS
+      const hourHand = $('#hourHand');
+      const minuteHand = $('#minuteHand');
+      const secondHand = $('#secondHand');
+      const digitalTime = $('#digitalTime');
+      const digitalDate = $('#digitalDate');
+      const analog = $('#analog');
+      const numbersEl = $('#numbers');
+
+      const clockPrefs = store.get('clockPrefs', {
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+        format: '24',
+        seconds: true,
+        analogStyle: 'classic'
+      });
+
+      const timeZoneSelect = $('#timeZone');
+      const timeFormat = $('#timeFormat');
+      const showSeconds = $('#showSeconds');
+      const analogStyle = $('#analogStyle');
+      const clockTags = $('#clockTags');
+
+      function populateNumbers() {
+        numbersEl.innerHTML = '';
+        for (let i = 1; i <= 12; i++) {
+          const span = document.createElement('span');
+          span.textContent = String(i);
+          const angle = (i / 12) * 360;
+          const r = 44; // % radius for positioning
+          span.style.transform = `rotate(${angle}deg) translateY(calc(var(--clock-size) * -0.${100 - r})) rotate(${-angle}deg)`;
+          numbersEl.appendChild(span);
+        }
+      }
+      populateNumbers();
+
+      function supportedTimeZones() {
+        let zones = [];
+        if (Intl.supportedValuesOf) {
+          try { zones = Intl.supportedValuesOf('timeZone'); } catch(e){}
+        }
+        if (!zones || zones.length === 0) {
+          zones = [
+            'Asia/Jakarta','Asia/Makassar','Asia/Jayapura','Asia/Singapore','Asia/Bangkok',
+            'Asia/Tokyo','Asia/Seoul','Asia/Dubai',
+            'Europe/London','Europe/Paris','Europe/Berlin','Europe/Moscow',
+            'America/New_York','America/Chicago','America/Denver','America/Los_Angeles','America/Sao_Paulo',
+            'Africa/Johannesburg','UTC','Australia/Sydney','Pacific/Auckland','Indian/Maldives'
+          ];
+        }
+        return zones;
+      }
+
+      function populateTimeZones() {
+        const zones = supportedTimeZones();
+        timeZoneSelect.innerHTML = '';
+        // Grouping simple: prioritize current, Asia, etc.
+        const current = clockPrefs.timeZone;
+        // Put current on top
+        const optCurrent = document.createElement('option');
+        optCurrent.value = current; optCurrent.textContent = `${current} (default)`;
+        timeZoneSelect.appendChild(optCurrent);
+        // Add common
+        const commons = ['Asia/Jakarta','Asia/Makassar','Asia/Jayapura','Asia/Singapore','Asia/Tokyo','Europe/London','Europe/Paris','America/New_York','America/Los_Angeles','Australia/Sydney','UTC'];
+        for (const z of commons) {
+          if (z !== current) {
+            const o = document.createElement('option'); o.value = z; o.textContent = z; timeZoneSelect.appendChild(o);
+          }
+        }
+        // Separator
+        const osep = document.createElement('option'); osep.disabled = true; osep.textContent = '──────────';
+        timeZoneSelect.appendChild(osep);
+        // Others (limited to 200 to keep dropdown manageable)
+        let count = 0;
+        for (const z of supportedTimeZones()) {
+          if ([current, ...commons].includes(z)) continue;
+          const o = document.createElement('option'); o.value = z; o.textContent = z; timeZoneSelect.appendChild(o);
+          if (++count > 200) break;
+        }
+        timeZoneSelect.value = clockPrefs.timeZone;
+      }
+      populateTimeZones();
+
+      timeFormat.value = clockPrefs.format;
+      showSeconds.checked = clockPrefs.seconds;
+      analogStyle.value = clockPrefs.analogStyle;
+      analog.classList.toggle('classic', clockPrefs.analogStyle === 'classic');
+      analog.classList.toggle('minimal', clockPrefs.analogStyle === 'minimal');
+
+      function partsFor(date, timeZone) {
+        const fmt = new Intl.DateTimeFormat('en-GB', {
+          timeZone, hour12: false,
+          hour: '2-digit', minute: '2-digit', second: '2-digit',
+          weekday: 'long', year: 'numeric', month: 'long', day: '2-digit'
+        });
+        const parts = fmt.formatToParts(date);
+        const obj = {};
+        for (const p of parts) obj[p.type] = p.value;
+        return obj;
+      }
+
+      function formatDigital(hours, minutes, seconds, format, withSeconds) {
+        let h = +hours;
+        let suffix = '';
+        if (format === '12') {
+          suffix = h >= 12 ? ' PM' : ' AM';
+          h = h % 12; if (h === 0) h = 12;
+        }
+        const mm = String(minutes).padStart(2,'0');
+        const ss = String(seconds).padStart(2,'0');
+        const hh = String(h).padStart(2,'0');
+        return hh + ':' + mm + (withSeconds ? (':' + ss) : '') + (format === '12' ? suffix : '');
+      }
+
+      function updateTags(timeZone) {
+        try {
+          const now = new Date();
+          const fmt = new Intl.DateTimeFormat('en-US', { timeZone, timeZoneName: 'shortOffset' });
+          const tz = fmt.formatToParts(now).find(p => p.type === 'timeZoneName')?.value || '';
+          const tag1 = document.createElement('span'); tag1.className = 'tag'; tag1.textContent = tz;
+          const tag2 = document.createElement('span'); tag2.className = 'tag'; tag2.textContent = timeZone;
+          clockTags.innerHTML = ''; clockTags.appendChild(tag1); clockTags.appendChild(tag2);
+        } catch(e) {
+          clockTags.innerHTML = `<span class="tag">${timeZone}</span>`;
+        }
+      }
+
+      function updateClock() {
+        const now = new Date();
+        const p = partsFor(now, clockPrefs.timeZone);
+        const H = +p.hour, M = +p.minute, S = +p.second;
+        // Analog
+        const hourAngle = (H % 12) * 30 + M * 0.5 + S * (0.5 / 60);
+        const minuteAngle = M * 6 + S * 0.1;
+        const secondAngle = S * 6;
+        hourHand.style.transform = `translate(-50%, -100%) rotate(${hourAngle}deg)`;
+        minuteHand.style.transform = `translate(-50%, -100%) rotate(${minuteAngle}deg)`;
+        secondHand.style.transform = `translate(-50%, -100%) rotate(${secondAngle}deg)`;
+        secondHand.style.opacity = clockPrefs.seconds ? '1' : '0.35';
+
+        // Digital
+        digitalTime.textContent = formatDigital(p.hour, p.minute, p.second, clockPrefs.format, clockPrefs.seconds);
+        const locale = navigator.language || 'id-ID';
+        const dateFmt = new Intl.DateTimeFormat(locale, {
+          timeZone: clockPrefs.timeZone,
+          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+        digitalDate.textContent = dateFmt.format(now);
+      }
+      updateTags(clockPrefs.timeZone);
+      updateClock();
+      let clockTimer = setInterval(updateClock, 500);
+
+      timeZoneSelect.addEventListener('change', e => {
+        clockPrefs.timeZone = e.target.value;
+        store.set('clockPrefs', clockPrefs);
+        updateTags(clockPrefs.timeZone);
+        updateClock();
+      });
+      timeFormat.addEventListener('change', e => {
+        clockPrefs.format = e.target.value;
+        store.set('clockPrefs', clockPrefs);
+        updateClock();
+      });
+      showSeconds.addEventListener('change', e => {
+        clockPrefs.seconds = e.target.checked;
+        store.set('clockPrefs', clockPrefs);
+        updateClock();
+      });
+      analogStyle.addEventListener('change', e => {
+        clockPrefs.analogStyle = e.target.value;
+        store.set('clockPrefs', clockPrefs);
+        analog.classList.toggle('classic', clockPrefs.analogStyle === 'classic');
+        analog.classList.toggle('minimal', clockPrefs.analogStyle === 'minimal');
+      });
+
+      // POMODORO
+      const chipFocus = $('#chipFocus'), chipShort = $('#chipShort'), chipLong = $('#chipLong');
+      const pomStart = $('#pomStart'), pomPause = $('#pomPause'), pomReset = $('#pomReset'), pomSkip = $('#pomSkip');
+      const durFocus = $('#durFocus'), durShort = $('#durShort'), durLong = $('#durLong'), longEvery = $('#longEvery');
+      const autoStart = $('#autoStart'), notify = $('#notify');
+      const pomTime = $('#pomTime'), phaseLabel = $('#phaseLabel'), pomInfo = $('#pomInfo');
+      const progressCircle = $('#progress');
+
+      const CIRCUM = 2 * Math.PI * 52;
+      progressCircle.setAttribute('stroke-dasharray', CIRCUM);
+      progressCircle.setAttribute('stroke-dashoffset', CIRCUM);
+
+      const pomState = store.get('pomState', {
+        mode: 'focus', // focus | short | long
+        running: false,
+        remainingMs: 25*60*1000,
+        endAt: null,
+        sessions: 0,
+        focusMin: 25,
+        shortMin: 5,
+        longMin: 15,
+        longEvery: 4,
+        auto: false,
+        notify: false
+      });
+
+      function syncPomControls() {
+        durFocus.value = pomState.focusMin;
+        durShort.value = pomState.shortMin;
+        durLong.value = pomState.longMin;
+        longEvery.value = pomState.longEvery;
+        autoStart.checked = pomState.auto;
+        notify.checked = pomState.notify;
+        // chips
+        $$('.chip').forEach(ch => ch.classList.remove('active'));
+        if (pomState.mode === 'focus') chipFocus.classList.add('active');
+        if (pomState.mode === 'short') chipShort.classList.add('active');
+        if (pomState.mode === 'long') chipLong.classList.add('active');
+        phaseLabel.textContent = pomState.mode === 'focus' ? 'Fokus' : (pomState.mode === 'short' ? 'Istirahat Singkat' : 'Istirahat Panjang');
+        pomInfo.textContent = `Sesi ${pomState.sessions} · Auto: ${pomState.auto ? 'Nyala' : 'Mati'}`;
+        pomPause.disabled = !pomState.running;
+        pomStart.textContent = pomState.running ? '⏸ Jeda' : '▶ Mulai';
+      }
+      function setMode(mode) {
+        pomState.mode = mode;
+        pomState.remainingMs = (mode === 'focus' ? pomState.focusMin : mode === 'short' ? pomState.shortMin : pomState.longMin) * 60 * 1000;
+        pomState.running = false;
+        pomState.endAt = null;
+        store.set('pomState', pomState);
+        syncPomControls();
+        drawPom();
+      }
+      function formatMMSS(ms) {
+        const sec = Math.max(0, Math.round(ms/1000));
+        const m = Math.floor(sec/60);
+        const s = sec % 60;
+        return String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+      }
+      function drawPom() {
+        pomTime.textContent = formatMMSS(pomState.remainingMs);
+        const total = (pomState.mode === 'focus' ? pomState.focusMin : pomState.mode === 'short' ? pomState.shortMin : pomState.longMin) * 60 * 1000;
+        const progress = 1 - (pomState.remainingMs / total);
+        const offset = Math.max(0, Math.min(CIRCUM, CIRCUM * (1 - progress)));
+        progressCircle.setAttribute('stroke-dashoffset', offset);
+      }
+      function tickPom() {
+        if (!pomState.running) return;
+        const now = Date.now();
+        pomState.remainingMs = Math.max(0, pomState.endAt - now);
+        if (pomState.remainingMs <= 0) {
+          pomState.running = false;
+          pomState.endAt = null;
+          onPomEnd();
+        }
+        drawPom();
+      }
+      let pomTimer = setInterval(tickPom, 200);
+
+      function startPom() {
+        if (pomState.running) { pausePom(); return; }
+        pomState.running = true;
+        if (!pomState.endAt) pomState.endAt = Date.now() + pomState.remainingMs;
+        else pomState.endAt = Date.now() + pomState.remainingMs;
+        store.set('pomState', pomState);
+        pomPause.disabled = false;
+        pomStart.textContent = '⏸ Jeda';
+      }
+      function pausePom() {
+        pomState.running = false;
+        pomState.remainingMs = Math.max(0, pomState.endAt - Date.now());
+        pomState.endAt = null;
+        store.set('pomState', pomState);
+        pomPause.disabled = true;
+        pomStart.textContent = '▶ Mulai';
+      }
+      function resetPom() {
+        setMode(pomState.mode);
+      }
+      function nextMode() {
+        if (pomState.mode === 'focus') {
+          // decide short or long
+          if (pomState.sessions > 0 && pomState.sessions % pomState.longEvery === 0) {
+            setMode('long');
+          } else {
+            setMode('short');
+          }
+        } else {
+          setMode('focus');
+        }
+      }
+      function onPomEnd() {
+        // Complete session if focus
+        if (pomState.mode === 'focus') pomState.sessions++;
+        store.set('pomState', pomState);
+        syncPomControls();
+        beep();
+        notifyUser(`Selesai: ${phaseLabel.textContent}`, pomState.mode === 'focus' ? 'Waktunya istirahat.' : 'Kembali fokus, yuk!');
+        if (pomState.auto) {
+          nextMode();
+          startPom();
+        }
+      }
+
+      function setDurationsFromInputs() {
+        const f = Math.max(1, Math.min(120, +durFocus.value || 25));
+        const s = Math.max(1, Math.min(60, +durShort.value || 5));
+        const l = Math.max(1, Math.min(120, +durLong.value || 15));
+        const every = Math.max(2, Math.min(12, +longEvery.value || 4));
+        pomState.focusMin = f; pomState.shortMin = s; pomState.longMin = l; pomState.longEvery = every;
+        store.set('pomState', pomState);
+        setMode(pomState.mode); // keep current mode but reset to new duration
+      }
+
+      // Web Audio beep (no external assets)
+      let audioCtx;
+      function beep() {
+        try {
+          if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          const o = audioCtx.createOscillator();
+          const g = audioCtx.createGain();
+          o.type = 'sine';
+          o.frequency.value = 880;
+          o.connect(g); g.connect(audioCtx.destination);
+          g.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+          g.gain.exponentialRampToValueAtTime(0.2, audioCtx.currentTime + 0.02);
+          g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.22);
+          o.start(); o.stop(audioCtx.currentTime + 0.24);
+          if (navigator.vibrate) navigator.vibrate(80);
+        } catch(e){}
+      }
+
+      async function notifyUser(title, body) {
+        try {
+          if (!pomState.notify) return;
+          if (!('Notification' in window)) return;
+          if (Notification.permission === 'granted') {
+            new Notification(title, { body });
+          } else if (Notification.permission !== 'denied') {
+            const perm = await Notification.requestPermission();
+            if (perm === 'granted') new Notification(title, { body });
+          }
+        } catch(e){}
+      }
+
+      chipFocus.addEventListener('click', () => setMode('focus'));
+      chipShort.addEventListener('click', () => setMode('short'));
+      chipLong.addEventListener('click', () => setMode('long'));
+      pomStart.addEventListener('click', startPom);
+      pomPause.addEventListener('click', pausePom);
+      pomReset.addEventListener('click', resetPom);
+      pomSkip.addEventListener('click', () => { nextMode(); drawPom(); });
+
+      durFocus.addEventListener('change', setDurationsFromInputs);
+      durShort.addEventListener('change', setDurationsFromInputs);
+      durLong.addEventListener('change', setDurationsFromInputs);
+      longEvery.addEventListener('change', setDurationsFromInputs);
+      autoStart.addEventListener('change', e => { pomState.auto = e.target.checked; store.set('pomState', pomState); syncPomControls(); });
+      notify.addEventListener('change', e => { pomState.notify = e.target.checked; store.set('pomState', pomState); if (e.target.checked) notifyUser('Notifikasi diaktifkan', 'Kami akan memberi tahu saat fase selesai.'); });
+
+      // Initialize Pomodoro
+      syncPomControls(); drawPom();
+
+      // MOTIVATION QUOTES (infinite via algorithmic generation)
+      const quoteText = $('#quoteText');
+      const quoteStatus = $('#quoteStatus');
+      const newQuoteBtn = $('#newQuote');
+      const copyQuoteBtn = $('#copyQuote');
+
+      // Seeded RNG
+      function xfnv1a(str) {
+        for(var i = 0, h = 2166136261 >>> 0; i < str.length; i++)
+          h = Math.imul(h ^ str.charCodeAt(i), 16777619);
+        return () => {
+          h += h << 13; h ^= h >>> 7;
+          h += h << 3;  h ^= h >>> 17;
+          return (h += h << 5) >>> 0;
+        }
+      }
+      function mulberry32(a) {
+        return function() {
+          var t = a += 0x6D2B79F5;
+          t = Math.imul(t ^ t >>> 15, t | 1);
+          t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+          return ((t ^ t >>> 14) >>> 0) / 4294967296;
+        }
+      }
+      function seededRandom(seedStr) {
+        const seed = xfnv1a(seedStr)();
+        return mulberry32(seed);
+      }
+      function pick(rng, arr) { return arr[Math.floor(rng() * arr.length)] }
+
+      // Building blocks
+      const starts = ["Start", "Begin", "This moment", "Right now", "Today", "From here", "Small steps", "Tiny wins", "Courage", "Clarity", "Consistency"];
+      const subjects = ["your story", "your focus", "your courage", "your effort", "your curiosity", "your patience", "your choices", "your discipline", "your compassion", "your habits", "your vision", "your resilience"];
+      const verbs = ["shapes", "builds", "unlocks", "guides", "amplifies", "defines", "powers", "elevates", "changes"];
+      const objects = ["the next chapter", "who you become", "tomorrow", "your direction", "your results", "your momentum", "the path ahead"];
+      const adv = ["one step at a time", "even when no one is watching", "especially on hard days", "with grace", "with patience", "with heart", "with purpose", "with intention"];
+      const closers = ["Keep going.", "Trust the process.", "Own it.", "Make it count.", "Stay the course.", "You got this.", "One more step.", "Be the author."];
+
+      const twoLiners = [
+        s => `${s}. ${capitalize(pick(rand, subjects))} ${pick(rand, verbs)} ${pick(rand, objects)}.`,
+        s => `${s}. Progress compounds ${pick(rand, adv)}.`,
+        s => `${s}. Direction beats speed.`,
+        s => `${s}. Consistency is a superpower.`,
+        s => `${s}. Purpose turns pressure into progress.`
+      ];
+
+      function capitalize(str) { return str.charAt(0).toUpperCase() + str.slice(1) }
+
+      // Include the example as a possible variant
+      const classic = () => "Start. Your story is what you have, what you will always have. It is something to own.";
+
+      let rand = seededRandom('init');
+
+      function generateQuote(seedStr) {
+        rand = seededRandom(seedStr);
+        // 40% two-liner, 40% mixed, 20% classic/random 3-sentence
+        const stylePick = rand();
+        if (stylePick < 0.2) {
+          return classic();
+        } else if (stylePick < 0.6) {
+          const lead = pick(rand, starts);
+          const builder = pick(rand, twoLiners);
+          return builder(lead);
+        } else {
+          const s1 = `${pick(rand, starts)} ${pick(rand, adv)}.`;
+          const s2 = `${capitalize(pick(rand, subjects))} ${pick(rand, verbs)} ${pick(rand, objects)}.`;
+          const s3 = pick(rand, closers);
+          return `${s1} ${s2} ${s3}`;
+        }
+      }
+
+      function hourKey(date = new Date()) {
+        return Math.floor(date.getTime() / 3600000);
+      }
+      function msUntilNextHour(date = new Date()) {
+        const next = new Date(date); next.setMinutes(0,0,0); next.setHours(date.getHours() + 1);
+        return next - date;
+      }
+
+      const quoteState = store.get('quoteState', {
+        lastHour: null,
+        text: null
+      });
+
+      function updateQuote(forceNew = false) {
+        const hk = hourKey();
+        if (forceNew || quoteState.lastHour !== hk || !quoteState.text) {
+          quoteState.text = generateQuote('Q-' + hk + '-' + Math.random());
+          quoteState.lastHour = hk;
+          store.set('quoteState', quoteState);
+        }
+        quoteText.textContent = '';
+        // Slight accent for first word if starts with "Start"
+        const txt = quoteState.text;
+        const firstWord = txt.split(/\s+/)[0].replace(/[^A-Za-z.]/g,'');
+        if (firstWord.replace('.', '') === 'Start') {
+          const em = document.createElement('em'); em.textContent = firstWord;
+          quoteText.appendChild(em);
+          quoteText.appendChild(document.createTextNode(txt.slice(firstWord.length)));
+        } else {
+          quoteText.textContent = txt;
+        }
+        updateQuoteStatus();
+      }
+
+      function updateQuoteStatus() {
+        const remaining = msUntilNextHour();
+        const h = Math.floor(remaining / 3600000);
+        const m = Math.floor((remaining % 3600000)/60000);
+        const s = Math.floor((remaining % 60000)/1000);
+        const fmt = (n) => String(n).padStart(2,'0');
+        quoteStatus.textContent = `Otomatis berganti tiap 1 jam · ${fmt(h)}:${fmt(m)}:${fmt(s)} menuju ganti berikutnya`;
+      }
+
+      updateQuote();
+      let quoteTick = setInterval(() => {
+        const currentHour = hourKey();
+        if (quoteState.lastHour !== currentHour) updateQuote(true);
+        updateQuoteStatus();
+      }, 1000);
+
+      newQuoteBtn.addEventListener('click', () => updateQuote(true));
+      copyQuoteBtn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(quoteText.textContent.trim());
+          copyQuoteBtn.textContent = '✅ Disalin';
+          setTimeout(() => copyQuoteBtn.textContent = '📋 Salin', 1200);
+        } catch(e) {
+          alert('Gagal menyalin. Salin manual: ' + quoteText.textContent.trim());
+        }
+      });
+
+      // Accessibility keyboard helpers
+      $$('.chip').forEach(chip => {
+        chip.setAttribute('tabindex', '0');
+        chip.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); chip.click(); } });
+      });
+
+      // Save clockPrefs on unload
+      window.addEventListener('beforeunload', () => {
+        store.set('clockPrefs', clockPrefs);
+        store.set('pomState', pomState);
+        store.set('themeState', themeState);
+        store.set('quoteState', quoteState);
+      });
+
+      // Initial UI state
+      updateTags(clockPrefs.timeZone);
+      updateClock();
+    })();
+  </script>
+</body>
+</html>
