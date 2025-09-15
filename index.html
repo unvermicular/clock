@@ -1,1138 +1,1187 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="color-scheme" content="light dark" />
-  <title>Clock</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Clocks, Pomodoro, and Hourly Motivation</title>
   <style>
+    /* ---------------------- CSS VARIABLES (THEME) ---------------------- */
     :root {
-      --bg: #f7f7fb;
-      --card: #ffffff;
-      --text: #0f172a;
-      --muted: #5b6474;
-      --border: #e6e8ef;
-      --accent: #6c5ce7;
-      --accent-contrast: #ffffff;
-      --success: #16a34a;
-      --warning: #f59e0b;
-      --danger: #ef4444;
-      --radius: 12px;
-      --ring: 0 0 0 1px var(--border), 0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.05);
-      --shadow-sm: 0 1px 2px rgba(0,0,0,0.06);
-      --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
-      --font: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      --bg: #0b0d10;
+      --bg-elev: #12161b;
+      --text: #e9eef5;
+      --muted: #a7b0be;
+      --primary: #6ea8fe;
+      --accent: #7ae0b8;
+      --danger: #ff6b6b;
+      --ok: #53df7f;
+      --warning: #f7c948;
+
+      --card-border: rgba(255,255,255,0.06);
+
+      --btn-radius: 12px;
+
+      --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
       --font-serif: Georgia, "Times New Roman", Times, serif;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      --clock-size: clamp(220px, 50vw, 340px);
+
+      --body-font: var(--font-sans);
+      --heading-font: var(--font-sans);
+
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.04);
+      --shadow-md: 0 6px 24px rgba(0,0,0,0.25), 0 1px 2px rgba(0,0,0,0.16);
+      --shadow-lg: 0 18px 60px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.22);
+
+      --ring: 0 0 0 2px rgba(255,255,255,0), 0 0 0 4px rgba(110,168,254,0);
     }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #0b1020;
-        --card: #0f162d;
-        --text: #e6e9f2;
-        --muted: #a0a7bb;
-        --border: #1b2442;
-        --ring: 0 0 0 1px var(--border), 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.25);
-        --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
-        --shadow-md: 0 4px 16px rgba(0,0,0,0.35);
-      }
+
+    .theme-light {
+      --bg: #f7fafc;
+      --bg-elev: #ffffff;
+      --text: #23272f;
+      --muted: #5b6472;
+      --card-border: rgba(0,0,0,0.07);
+      --ring: 0 0 0 2px rgba(0,0,0,0), 0 0 0 6px rgba(110,168,254,0.25);
     }
-    [data-theme="light"] {
-      --bg: #f7f7fb;
-      --card: #ffffff;
-      --text: #0f172a;
-      --muted: #5b6474;
-      --border: #e6e8ef;
-      --ring: 0 0 0 1px var(--border), 0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.05);
-      color-scheme: light;
+    .theme-dark {
+      --bg: #0b0d10;
+      --bg-elev: #12161b;
+      --text: #e9eef5;
+      --muted: #a7b0be;
+      --card-border: rgba(255,255,255,0.06);
+      --ring: 0 0 0 2px rgba(255,255,255,0), 0 0 0 6px rgba(110,168,254,0.25);
     }
-    [data-theme="dark"] {
-      --bg: #0b1020;
-      --card: #0f162d;
-      --text: #e6e9f2;
-      --muted: #a0a7bb;
-      --border: #1b2442;
-      --ring: 0 0 0 1px var(--border), 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.25);
-      color-scheme: dark;
-    }
-    * { box-sizing: border-box }
-    html, body {
-      height: 100%;
-      background: radial-gradient(1500px 800px at 10% -10%, color-mix(in oklab, var(--accent) 6%, transparent), transparent),
-                  radial-gradient(1000px 400px at 90% 10%, color-mix(in oklab, var(--accent) 6%, transparent), transparent),
-                  var(--bg);
+
+    /* ---------------------- BASE / LAYOUT ---------------------- */
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: var(--body-font);
       color: var(--text);
-      font-family: var(--font);
+      background: radial-gradient(1200px 800px at 20% -10%, rgba(110,168,254,0.12), transparent 50%),
+                  radial-gradient(1000px 600px at 120% 10%, rgba(122,224,184,0.12), transparent 50%),
+                  var(--bg);
       line-height: 1.5;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      transition: background 300ms ease, color 300ms ease;
     }
-    a { color: var(--accent); text-decoration: none }
-    a:hover { text-decoration: underline }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: saturate(160%) blur(10px);
+      background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0)) ;
+    }
+
     .container {
       max-width: 1100px;
-      padding: 24px clamp(12px, 3vw, 24px);
       margin: 0 auto;
-      display: grid;
-      gap: 20px;
+      padding: 16px;
     }
-    header.appbar {
+
+    .topbar {
       display: flex;
       align-items: center;
-      gap: 12px;
       justify-content: space-between;
+      gap: 12px;
+      padding: 10px 0;
     }
+
     .brand {
       display: flex;
       align-items: center;
       gap: 12px;
+      font-family: var(--heading-font);
       font-weight: 700;
+      font-size: 22px;
       letter-spacing: 0.2px;
     }
-    .brand .logo {
-      width: 36px; height: 36px;
-      border-radius: 10px;
-      background:
-        conic-gradient(from 0deg, color-mix(in oklab, var(--accent) 90%, #fff) 0 25%, color-mix(in oklab, var(--accent) 70%, #000) 25% 50%, color-mix(in oklab, var(--accent) 50%, #000) 50% 75%, var(--accent) 75% 100%);
-      box-shadow: var(--shadow-md);
-      position: relative;
-      isolation: isolate;
-    }
-    .brand .logo::after {
-      content: "";
-      position: absolute; inset: 3px;
-      background: var(--card);
-      border-radius: 8px;
-      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent);
-    }
-    .toolbar {
-      display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end;
-    }
-    .btn {
-      -webkit-tap-highlight-color: transparent;
-      appearance: none;
-      border: 1px solid var(--border);
-      background: var(--card);
-      color: var(--text);
-      border-radius: var(--radius);
-      padding: 10px 12px;
-      font-weight: 600;
-      font-size: 14px;
-      box-shadow: var(--shadow-sm);
-      cursor: pointer;
-      transition: transform .06s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease, color .2s ease;
-    }
-    .btn:hover { transform: translateY(-1px); box-shadow: var(--ring) }
-    .btn:active { transform: translateY(0) scale(.98) }
-    .btn.primary {
-      background: var(--accent); color: var(--accent-contrast);
-      border-color: color-mix(in srgb, var(--accent) 70%, black);
-    }
-    .btn.ghost {
-      background: transparent;
-      border-color: var(--border);
-    }
-    .btn.inline {
-      padding: 6px 10px; font-weight: 600; font-size: 13px;
-    }
-    .panel {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: calc(var(--radius) + 2px);
-      padding: 16px;
-      box-shadow: var(--ring);
-    }
-    .grid {
-      display: grid; gap: 20px;
-      grid-template-columns: 1fr;
-    }
-    @media (min-width: 920px) {
-      .grid { grid-template-columns: 1.1fr 0.9fr; }
-    }
-    .section-title {
-      font-size: 14px; text-transform: uppercase; letter-spacing: 0.16em; color: var(--muted);
-      margin-bottom: 8px; font-weight: 800;
-    }
-    .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap }
-    .controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap }
-    .field {
-      display: grid; gap: 6px; min-width: 160px;
-    }
-    .label { font-size: 12px; color: var(--muted); font-weight: 700; letter-spacing: .06em; text-transform: uppercase }
-    .input, select, input[type="color"] {
-      appearance: none;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: calc(var(--radius) - 4px);
-      padding: 10px 12px;
-      color: var(--text);
-      box-shadow: var(--shadow-sm);
-      font: inherit;
-    }
-    details.customizer summary {
-      cursor: pointer; list-style: none; margin: 0; padding: 0; outline: none;
-      font-weight: 700; color: var(--text);
-    }
-    details.customizer summary::-webkit-details-marker { display: none }
-    details.customizer {
-      background: var(--card); border: 1px solid var(--border); border-radius: calc(var(--radius) + 2px);
-      padding: 14px 14px;
-      box-shadow: var(--ring);
-    }
-    details.customizer .content { margin-top: 12px; display: grid; gap: 12px }
-    .split {
-      display: grid; gap: 12px; grid-template-columns: 1fr;
-    }
-    @media (min-width: 640px) {
-      .split { grid-template-columns: 1fr 1fr; }
+    .brand .dot {
+      width: 12px; height: 12px; border-radius: 50%;
+      background: conic-gradient(from 180deg, var(--primary), var(--accent));
+      box-shadow: 0 0 0 4px rgba(110,168,254,0.15);
     }
 
-    /* Clock area */
-    .clock-card {
-      display: grid; gap: 16px;
-      align-items: center;
+    .grid {
+      display: grid;
       grid-template-columns: 1fr;
+      gap: 16px;
     }
-    @media (min-width: 560px) {
-      .clock-card { grid-template-columns: auto 1fr; }
+    @media (min-width: 900px) {
+      .grid {
+        grid-template-columns: 1.1fr 0.9fr;
+      }
     }
-    .analog-wrap {
-      display: grid; place-items: center;
+
+    section.card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0)) , var(--bg-elev);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      box-shadow: var(--shadow-sm);
+      padding: 16px;
     }
-    .analog {
-      position: relative;
-      width: var(--clock-size); height: var(--clock-size);
-      border-radius: 999px;
-      background:
-        radial-gradient(120px 60px at 50% 30%, color-mix(in oklab, white 6%, var(--card)), var(--card)),
-        conic-gradient(from 0deg, color-mix(in srgb, var(--accent) 10%, transparent) 0 90deg, transparent 90deg 180deg, color-mix(in srgb, var(--accent) 6%, transparent) 180deg 270deg, transparent 270deg 360deg);
-      border: 1px solid var(--border);
-      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 10%, transparent), var(--ring);
+    section.card h2 {
+      margin: 0 0 10px 0;
+      font-family: var(--heading-font);
+      font-size: 18px;
+      letter-spacing: 0.2px;
+    }
+    .subtle {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    /* ---------------------- CONTROLS / BUTTONS ---------------------- */
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+    .spacer { flex: 1; }
+
+    .btn {
+      --_bg: color-mix(in oklab, var(--primary) 85%, black 0%);
+      --_bg2: color-mix(in oklab, var(--accent) 85%, black 0%);
+      background: linear-gradient(135deg, var(--_bg), var(--_bg2));
+      color: #0b1117;
+      font-weight: 700;
+      border: 0;
+      padding: 10px 14px;
+      border-radius: var(--btn-radius);
+      cursor: pointer;
+      transition: transform 120ms ease, box-shadow 120ms ease, opacity 120ms;
+      box-shadow: 0 6px 20px color-mix(in oklab, var(--_bg) 30%, black 70%);
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn.ghost {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--card-border);
+      box-shadow: none;
+    }
+    .btn.warn {
+      background: linear-gradient(135deg, var(--warning), color-mix(in oklab, var(--warning) 60%, black 20%));
+      color: #262626;
+    }
+    .btn.danger {
+      background: linear-gradient(135deg, var(--danger), color-mix(in oklab, var(--danger) 60%, black 25%));
+      color: #fff;
+    }
+    .btn.ok {
+      background: linear-gradient(135deg, var(--ok), color-mix(in oklab, var(--ok) 60%, black 15%));
+      color: #072a17;
+    }
+
+    label { font-size: 13px; color: var(--muted); }
+    .field {
+      display: grid;
+      gap: 4px;
+      min-width: 160px;
+    }
+    input[type="color"], input[type="number"], input[type="range"], select, input[type="checkbox"] {
+      appearance: none;
+      background: var(--bg-elev);
+      color: var(--text);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 8px 10px;
+      box-shadow: var(--shadow-sm);
+      outline: none;
+      transition: box-shadow 120ms ease, border-color 120ms ease, background 120ms ease;
+    }
+    input[type="range"] {
+      padding: 0;
+      height: 32px;
+    }
+    input[type="color"] {
+      padding: 0;
+      width: 44px;
+      height: 32px;
+      border-radius: 8px;
       overflow: hidden;
-      isolation: isolate;
     }
-    .analog .ticks {
-      position: absolute; inset: 0; border-radius: 50%;
+    input:focus, select:focus {
+      box-shadow: var(--ring);
+      border-color: color-mix(in oklab, var(--primary) 70%, transparent 30%);
+    }
+
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    /* ---------------------- CLOCKS ---------------------- */
+    .clocks {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    @media (min-width: 700px) {
+      .clocks {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    .clock-card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0)) , var(--bg-elev);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: var(--shadow-sm);
+      min-height: 220px;
+      display: grid;
+      align-items: center;
+      justify-items: center;
+    }
+
+    /* Analog clock */
+    .analog-wrap {
+      width: min(320px, 85vw);
+      aspect-ratio: 1;
+      position: relative;
+      border-radius: 50%;
       background:
-        repeating-conic-gradient(var(--muted) 0 1deg, transparent 1deg 6deg),
-        repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--text) 70%, transparent) 0 2deg, transparent 2deg 30deg);
-      mask: radial-gradient(circle at center, transparent 0 calc(50% - 8px), black calc(50% - 8px));
-      opacity: .15;
-      pointer-events: none;
+        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.05), transparent 40%),
+        radial-gradient(circle at 50% 50%, var(--bg-elev) 0%, var(--bg) 75%);
+      border: 1px solid var(--card-border);
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,0.02), var(--shadow-md);
     }
-    .analog.classic .ticks { opacity: .25 }
-    .analog .numbers { position: absolute; inset: 0; }
-    .analog .numbers span {
-      position: absolute; inset: 0;
-      display: grid; place-items: center;
-      font-weight: 800; color: color-mix(in srgb, var(--text) 90%, transparent);
-      opacity: .85; user-select: none; pointer-events: none;
-      font-size: clamp(12px, 2.2vw, 16px);
+    .tick { position: absolute; left: 50%; top: 50%; transform-origin: 0 0; }
+    .tick .bar {
+      transform: translateX(-50%);
+      background: color-mix(in oklab, var(--text) 70%, transparent 30%);
+      border-radius: 2px;
     }
-    .analog.minimal .numbers { display: none }
+    .tick.hour .bar { width: 3px; height: 12px; }
+    .tick.min .bar  { width: 2px; height: 8px; opacity: 0.6; }
+
     .hand {
       position: absolute; left: 50%; top: 50%;
       transform-origin: 50% 100%;
-      transform: translate(-50%, -100%) rotate(0deg);
-      will-change: transform;
-      filter: drop-shadow(0 1px 1px rgba(0,0,0,.15));
+      translate: -50% -100%;
+      filter: drop-shadow(0 1px 1px rgba(0,0,0,0.25));
     }
-    .hand.hour {
-      width: 8px; height: calc(var(--clock-size) * 0.28);
-      background: color-mix(in srgb, var(--text) 80%, transparent);
-      border-radius: 8px;
-    }
-    .hand.minute {
-      width: 6px; height: calc(var(--clock-size) * 0.36);
-      background: color-mix(in srgb, var(--text) 70%, transparent);
+    .hand.hour-hand {
+      width: 6px; height: 26%;
+      background: color-mix(in oklab, var(--text) 70%, black 15%);
       border-radius: 6px;
     }
-    .hand.second {
-      width: 3px; height: calc(var(--clock-size) * 0.40);
-      background: var(--accent);
-      border-radius: 3px;
+    .hand.minute-hand {
+      width: 4px; height: 34%;
+      background: color-mix(in oklab, var(--primary) 85%, black 10%);
+      border-radius: 6px;
     }
-    .pin {
+    .hand.second-hand {
+      width: 2px; height: 38%;
+      background: color-mix(in oklab, var(--accent) 90%, black 5%);
+      border-radius: 6px;
+    }
+    .center-cap {
       position: absolute; left: 50%; top: 50%;
-      transform: translate(-50%, -50%);
-      width: 16px; height: 16px; border-radius: 999px;
-      background: var(--accent);
-      box-shadow: inset 0 0 0 3px var(--card), 0 4px 8px rgba(0,0,0,.2);
-      z-index: 10;
-    }
-    .digital {
-      display: grid; gap: 8px;
-      align-self: center;
-    }
-    .digital .time {
-      font-variant-numeric: tabular-nums;
-      letter-spacing: 1.2px;
-      font-weight: 800;
-      font-size: clamp(28px, 5.2vw, 48px);
-    }
-    .digital .date {
-      color: var(--muted);
-      font-size: clamp(13px, 2.4vw, 15px);
-      font-weight: 600;
-    }
-    .tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px }
-    .tag {
-      padding: 6px 8px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: color-mix(in srgb, var(--accent) 7%, var(--card));
-      color: color-mix(in srgb, var(--text) 90%, transparent);
-      font-size: 12px; font-weight: 700;
+      width: 12px; height: 12px; border-radius: 50%;
+      translate: -50% -50%;
+      background: radial-gradient(circle at 35% 35%, #fff, #ddd 30%, #999 70%, #333);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.35), inset 0 0 0 2px rgba(0,0,0,0.2);
     }
 
-    /* Pomodoro */
+    /* Digital clock */
+    .digital-wrap {
+      text-align: center;
+      width: 100%;
+    }
+    .digital-time {
+      font-family: var(--font-mono);
+      font-size: clamp(26px, 7vw, 46px);
+      letter-spacing: 1px;
+      font-weight: 800;
+      background: linear-gradient(180deg, var(--text), color-mix(in oklab, var(--text) 70%, transparent 30%));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .digital-date { color: var(--muted); font-size: 14px; }
+
+    .clock-controls {
+      display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: center;
+      margin-top: 8px;
+    }
+
+    /* ---------------------- POMODORO ---------------------- */
     .pomodoro {
-      display: grid; gap: 12px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      align-items: center;
+      justify-items: center;
+      text-align: center;
     }
     .ring {
-      display: grid; place-items: center;
-      width: 240px; height: 240px;
-      margin: 0 auto;
+      --size: min(300px, 80vw);
+      --thickness: 16px;
+      width: var(--size);
+      height: var(--size);
+      border-radius: 50%;
+      background:
+        conic-gradient(var(--primary) var(--deg, 0deg), rgba(127,127,127,0.15) 0deg),
+        radial-gradient(circle at 50% 50%, var(--bg-elev) calc(50% - var(--thickness)), transparent calc(50% - var(--thickness) + 1px));
+      display: grid;
+      place-items: center;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--card-border);
       position: relative;
     }
-    .ring svg { width: 100%; height: 100%; transform: rotate(-90deg) }
-    .ring .timeleft {
-      position: absolute; inset: 0;
-      display: grid; place-items: center; text-align: center;
-      gap: 8px;
+    .ring .inner {
+      width: calc(var(--size) - var(--thickness) * 2.2);
+      height: calc(var(--size) - var(--thickness) * 2.2);
+      border-radius: 50%;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0)), var(--bg-elev);
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--card-border);
     }
-    .timeleft .big {
-      font-weight: 900; letter-spacing: 1.2px;
+    .pomo-time {
+      font-family: var(--font-mono);
       font-size: clamp(28px, 8vw, 48px);
-      font-variant-numeric: tabular-nums;
+      font-weight: 800;
     }
-    .timeleft .phase {
-      font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .2em; font-size: 12px;
+    .pomo-state {
+      margin-top: 6px;
+      font-size: 13px;
+      color: var(--muted);
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
     }
-    .pom-controls { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap }
-    .chips { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap }
-    .chip {
-      padding: 8px 10px; border-radius: 999px; font-weight: 700; font-size: 13px;
-      border: 1px solid var(--border); background: var(--card); cursor: pointer;
+    .pomo-controls, .pomo-settings {
+      display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; align-items: center;
     }
-    .chip.active { background: var(--accent); color: var(--accent-contrast); border-color: color-mix(in srgb, var(--accent) 70%, black) }
-    .small {
-      font-size: 12px; color: var(--muted); text-align: center;
+    .pomo-settings .field { min-width: 120px; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 10px; border-radius: 999px;
+      border: 1px solid var(--card-border);
+      background: color-mix(in oklab, var(--bg-elev) 85%, black 0%);
+      font-size: 12px; color: var(--muted);
     }
-    .settings-grid {
-      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
-    }
-    @media (max-width: 420px) {
-      .settings-grid { grid-template-columns: 1fr 1fr; }
-    }
-    .inline-field {
-      display: grid; gap: 6px;
-    }
-    .inline-field input[type="number"] { width: 100%; }
-    .switch {
-      display: inline-flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;
-    }
-    .switch input { display: none }
-    .switch .knob {
-      width: 40px; height: 24px; border-radius: 999px; background: color-mix(in srgb, var(--muted) 30%, transparent);
-      border: 1px solid var(--border); position: relative; transition: background .2s ease, border-color .2s ease;
-    }
-    .switch .knob::after {
-      content:""; position: absolute; left: 2px; top: 2px; width: 18px; height: 18px; border-radius: 999px;
-      background: var(--card); box-shadow: var(--shadow-sm); transition: transform .2s ease;
-    }
-    .switch input:checked + .knob { background: var(--accent); border-color: color-mix(in srgb, var(--accent) 70%, black) }
-    .switch input:checked + .knob::after { transform: translateX(16px) }
 
-    /* Motivation */
+    /* ---------------------- MOTIVATION ---------------------- */
+    .quote-wrap {
+      display: grid;
+      gap: 10px;
+    }
     .quote {
-      font-size: clamp(16px, 2.6vw, 20px);
-      font-weight: 600;
-      line-height: 1.5;
+      font-size: clamp(16px, 3.8vw, 22px);
+      line-height: 1.4;
+      font-family: var(--heading-font);
     }
-    .quote em { font-style: normal; color: var(--accent) }
-    .quote-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: space-between }
-    .muted { color: var(--muted) }
-    .hr {
-      height: 1px; background: var(--border); border: none; margin: 8px 0;
+    .quote-controls {
+      display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
     }
-    .footer {
-      text-align: center; color: var(--muted); font-size: 12px; padding: 8px 0 20px;
+    .countdown {
+      color: var(--muted);
+      font-size: 13px;
     }
-    /* Utilities */
-    .spacer { flex: 1 }
-    .sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0 }
-    .danger { color: var(--danger) }
+
+    /* ---------------------- FOOTER ---------------------- */
+    footer {
+      padding: 20px 0 40px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    /* Utility */
+    .hidden { display: none !important; }
+    .divider {
+      height: 1px; background: var(--card-border); margin: 8px 0;
+    }
   </style>
 </head>
-<body>
-  <div class="container" id="app">
-    <header class="appbar">
+<body class="theme-dark">
+  <header>
+    <div class="container topbar">
       <div class="brand">
-        <div class="logo" aria-hidden="true"></div>
-        <div>
-          <div style="font-size: 12px; color: var(--muted); font-weight: 800; letter-spacing: .18em; text-transform: uppercase;">Time · Focus · Inspire</div>
-          <div style="font-size: 18px;">Clock</div>
-        </div>
+        <span class="dot" aria-hidden="true"></span>
+        Clocks, Pomodoro, and Motivation
       </div>
-      <div class="toolbar">
-        <button class="btn inline" id="themeToggle" aria-label="Toggle tema">🌗 Theme</button>
-        <button class="btn inline" id="openCustomize" aria-controls="customizer">🎨 Customized</button>
-      </div>
-    </header>
-
-    <details class="customizer panel customizer" id="customizer">
-      <div class="content">
-        <div class="split">
-          <div class="field">
-            <label class="label" for="accentColor">Accent Color</label>
-            <input type="color" id="accentColor" value="#6c5ce7" />
-          </div>
-          <div class="field">
-            <label class="label" for="fontFamily">Font</label>
-            <select id="fontFamily">
-              <option value="sans">Sans (System)</option>
-              <option value="serif">Serif (Georgia)</option>
-              <option value="mono">Monospace</option>
-            </select>
-          </div>
-          <div class="field">
-            <label class="label" for="radiusRange">Button Radius</label>
-            <input type="range" id="radiusRange" min="6" max="20" step="1" />
-          </div>
-          <div class="field">
-            <label class="label" for="uiScale">UI Scale</label>
-            <input type="range" id="uiScale" min="90" max="115" value="100" />
-          </div>
-        </div>
+      <div class="controls">
         <div class="row">
-          <button class="btn ghost inline" id="resetTheme">↺ Reset Theme</button>
-          <span class="muted">Settings saved automatically.</span>
+          <button class="btn ghost" id="toggleSettings" aria-expanded="false" aria-controls="settingsPanel">Customize</button>
+        </div>
+        <div class="row" role="group" aria-label="Theme mode">
+          <button class="btn" id="lightModeBtn" title="Light mode">Light</button>
+          <button class="btn ghost" id="darkModeBtn" title="Dark mode">Dark</button>
         </div>
       </div>
-    </details>
+    </div>
+    <div id="settingsPanel" class="container card hidden" role="region" aria-label="Customization panel">
+      <div class="row" style="justify-content: space-between; align-items: baseline;">
+        <h2>Theme & UI customization</h2>
+        <button class="btn ghost" id="resetTheme">Reset</button>
+      </div>
+      <div class="settings-grid">
+        <div class="field">
+          <label for="primaryColor">Primary color</label>
+          <input type="color" id="primaryColor" value="#6ea8fe" />
+        </div>
+        <div class="field">
+          <label for="accentColor">Accent color</label>
+          <input type="color" id="accentColor" value="#7ae0b8" />
+        </div>
+        <div class="field">
+          <label for="btnRadius">Button radius</label>
+          <input type="range" id="btnRadius" min="0" max="24" value="12" />
+        </div>
+        <div class="field">
+          <label for="bodyFont">Body font</label>
+          <select id="bodyFont">
+            <option value="sans">Sans (UI)</option>
+            <option value="serif">Serif</option>
+            <option value="mono">Monospace</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="headingFont">Heading font</label>
+          <select id="headingFont">
+            <option value="sans">Sans (UI)</option>
+            <option value="serif">Serif</option>
+            <option value="mono">Monospace</option>
+          </select>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="row" style="gap: 16px;">
+        <div class="field">
+          <label for="clockMode">Clock display</label>
+          <select id="clockMode">
+            <option value="both">Both</option>
+            <option value="analog">Analog only</option>
+            <option value="digital">Digital only</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="is12h">Digital format</label>
+          <select id="is12h">
+            <option value="false">24-hour</option>
+            <option value="true">12-hour</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="smoothSeconds">Analog seconds</label>
+          <select id="smoothSeconds">
+            <option value="true">Smooth</option>
+            <option value="false">Tick</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </header>
 
+  <main class="container">
     <div class="grid">
-      <!-- Left: Clocks -->
-      <section class="panel">
-        <div class="section-title">Clock</div>
-        <div class="clock-card">
-          <div class="analog-wrap">
-            <div class="analog classic" id="analog">
-              <div class="ticks" aria-hidden="true"></div>
-              <div class="numbers" id="numbers" aria-hidden="true"></div>
-              <div class="hand hour" id="hourHand" aria-hidden="true"></div>
-              <div class="hand minute" id="minuteHand" aria-hidden="true"></div>
-              <div class="hand second" id="secondHand" aria-hidden="true"></div>
-              <div class="pin" aria-hidden="true"></div>
-              <span class="sr-only" id="analogLabel">Analog Clock</span>
+      <section class="card" aria-label="Clocks">
+        <h2>Clocks</h2>
+        <p class="subtle">Switch between analog and digital views, or show both.</p>
+        <div class="clocks" id="clocksGrid">
+          <!-- Analog -->
+          <div class="clock-card" id="analogCard" aria-live="off">
+            <div class="analog-wrap" id="analogClock" aria-label="Analog clock">
+              <!-- ticks populated by JS -->
+              <div class="hand hour-hand" id="hourHand" aria-hidden="true"></div>
+              <div class="hand minute-hand" id="minuteHand" aria-hidden="true"></div>
+              <div class="hand second-hand" id="secondHand" aria-hidden="true"></div>
+              <div class="center-cap" aria-hidden="true"></div>
             </div>
           </div>
-          <div class="digital">
-            <div class="time" id="digitalTime">00:00:00</div>
-            <div class="date" id="digitalDate">—</div>
-            <div class="tags" id="clockTags"></div>
-            <hr class="hr" />
-            <div class="controls">
-              <div class="field" style="min-width: 200px;">
-                <label for="timeZone" class="label">Time Zone</label>
-                <select id="timeZone" aria-label="Zona waktu"></select>
-              </div>
-              <div class="field">
-                <label class="label" for="timeFormat">Time Zone</label>
-                <select id="timeFormat">
-                  <option value="24">24 hour</option>
-                  <option value="12">12 hour</option>
-                </select>
-              </div>
-              <div class="field">
-                <label class="label" for="showSeconds">Second</label>
-                <label class="switch"><input type="checkbox" id="showSeconds" checked /><span class="knob" aria-hidden="true"></span></label>
-              </div>
-              <div class="field">
-                <label class="label" for="analogStyle">Analog Style</label>
-                <select id="analogStyle">
-                  <option value="classic">Classic</option>
-                  <option value="minimal">Minimal</option>
-                </select>
+
+          <!-- Digital -->
+          <div class="clock-card" id="digitalCard">
+            <div class="digital-wrap">
+              <div class="digital-time" id="digitalTime" aria-live="polite">--:--:--</div>
+              <div class="digital-date" id="digitalDate">Loading date…</div>
+              <div class="clock-controls">
+                <span class="badge">
+                  <label for="formatToggle">Format</label>
+                  <select id="formatToggle" aria-label="Digital format">
+                    <option value="false">24-hour</option>
+                    <option value="true">12-hour</option>
+                  </select>
+                </span>
+                <span class="badge">
+                  <label for="clockModeInline">Display</label>
+                  <select id="clockModeInline" aria-label="Clock display">
+                    <option value="both">Both</option>
+                    <option value="analog">Analog only</option>
+                    <option value="digital">Digital only</option>
+                  </select>
+                </span>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Right: Pomodoro -->
-      <section class="panel pomodoro">
-        <div class="section-title">Pomodoro</div>
-        <div class="chips" role="tablist" aria-label="Mode Pomodoro">
-          <button class="chip active" data-mode="focus" id="chipFocus">Focus</button>
-          <button class="chip" data-mode="short" id="chipShort">Short Break</button>
-          <button class="chip" data-mode="long" id="chipLong">Long Break</button>
-        </div>
-        <div class="ring">
-          <svg viewBox="0 0 120 120" aria-hidden="true">
-            <defs>
-              <linearGradient id="grad">
-                <stop offset="0%" stop-color="var(--accent)"/>
-                <stop offset="100%" stop-color="color-mix(in srgb, var(--accent) 60%, #00f)"/>
-              </linearGradient>
-            </defs>
-            <circle cx="60" cy="60" r="52" fill="none" stroke="color-mix(in srgb, var(--accent) 12%, var(--border))" stroke-width="10"></circle>
-            <circle id="progress" cx="60" cy="60" r="52" fill="none" stroke="url(#grad)" stroke-width="10" stroke-linecap="round" stroke-dasharray="326.7256" stroke-dashoffset="326.7256"></circle>
-          </svg>
-          <div class="timeleft">
-            <div class="phase" id="phaseLabel">Focus</div>
-            <div class="big" id="pomTime">25:00</div>
-            <div class="small" id="pomInfo">Session 0 · Auto: off</div>
+      <section class="card" aria-label="Pomodoro timer">
+        <h2>Pomodoro</h2>
+        <div class="pomodoro">
+          <div class="ring" id="pomoRing" style="--deg: 0deg;">
+            <div class="inner">
+              <div>
+                <div class="pomo-time" id="pomoTime">25:00</div>
+                <div class="pomo-state" id="pomoState">Focus</div>
+              </div>
+            </div>
           </div>
-        </div>
-        <div class="pom-controls">
-          <button class="btn primary" id="pomStart">▶ Start</button>
-          <button class="btn" id="pomPause" disabled>⏸ Pause</button>
-          <button class="btn ghost" id="pomReset">⟲ Reset</button>
-          <button class="btn ghost" id="pomSkip">⤼ Skip</button>
-        </div>
-        <div class="settings-grid">
-          <div class="inline-field">
-            <label class="label" for="durFocus">Focus (mnt)</label>
-            <input class="input" type="number" id="durFocus" min="1" max="120" value="25" />
+          <div class="pomo-controls">
+            <button class="btn ok" id="pomoStart">Start</button>
+            <button class="btn warn" id="pomoPause">Pause</button>
+            <button class="btn danger" id="pomoReset">Reset</button>
+            <span class="badge" title="Start next session automatically">
+              <label for="pomoAuto">Auto-next</label>
+              <input type="checkbox" id="pomoAuto" />
+            </span>
           </div>
-          <div class="inline-field">
-            <label class="label" for="durShort">Short Break (mnt)</label>
-            <input class="input" type="number" id="durShort" min="1" max="60" value="5" />
+          <div class="pomo-settings">
+            <div class="field">
+              <label for="focusMin">Focus (min)</label>
+              <input type="number" id="focusMin" min="1" max="120" value="25" />
+            </div>
+            <div class="field">
+              <label for="shortMin">Short break (min)</label>
+              <input type="number" id="shortMin" min="1" max="60" value="5" />
+            </div>
+            <div class="field">
+              <label for="longMin">Long break (min)</label>
+              <input type="number" id="longMin" min="1" max="60" value="15" />
+            </div>
+            <div class="field">
+              <label for="longEvery">Long break every</label>
+              <input type="number" id="longEvery" min="2" max="12" value="4" />
+            </div>
           </div>
-          <div class="inline-field">
-            <label class="label" for="durLong">Long Break (mnt)</label>
-            <input class="input" type="number" id="durLong" min="1" max="120" value="15" />
-          </div>
-          <div class="inline-field">
-            <label class="label" for="longEvery">Length of each (session)</label>
-            <input class="input" type="number" id="longEvery" min="2" max="12" value="4" />
-          </div>
-          <div class="inline-field">
-            <label class="label" for="autoStart">Auto Start</label>
-            <label class="switch"><input type="checkbox" id="autoStart" /><span class="knob" aria-hidden="true"></span></label>
-          </div>
-          <div class="inline-field">
-            <label class="label" for="notify">Notification</label>
-            <label class="switch"><input type="checkbox" id="notify" /><span class="knob" aria-hidden="true"></span></label>
+          <div class="row" style="justify-content:center;">
+            <span class="badge" id="pomoStats">Sessions: 0 • Completed focus: 0</span>
           </div>
         </div>
       </section>
     </div>
 
-    <!-- Motivation -->
-    <section class="panel">
-      <div class="section-title">Motivation (EN)</div>
-      <div class="quote" id="quoteText">
-        <strong>Start.</strong> Your story is what you have, what you will always have. It is something to own.
-      </div>
-      <div class="quote-controls" style="margin-top:10px;">
-        <div class="row">
-          <button class="btn inline" id="newQuote">🔄 Randomize</button>
-          <button class="btn inline" id="copyQuote">📋 Copy</button>
+    <section class="card" aria-label="Hourly Motivation">
+      <h2>Hourly Motivation</h2>
+      <p class="subtle">A fresh, original line every hour—algorithmically generated so it never runs out.</p>
+      <div class="quote-wrap">
+        <div class="quote" id="quoteText">
+          Loading your hourly motivation…
         </div>
-        <div class="muted" id="quoteStatus">Automatically changes every hour · 00:00:00 until the next change</div>
+        <div class="quote-controls">
+          <button class="btn" id="nextQuote">New line</button>
+          <span class="countdown" id="quoteCountdown">Next refresh at the top of the hour.</span>
+        </div>
       </div>
     </section>
+  </main>
 
-    <footer class="footer">
-      Offline-first. Preferences are stored in your browser. No data is sent out.
-    </footer>
-  </div>
+  <footer>
+    Built with pure HTML, CSS, and JavaScript. No system theme used—toggle light/dark above.
+  </footer>
 
   <script>
-    ;(() => {
-      const $ = (sel, root = document) => root.querySelector(sel);
-      const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+    /* ---------------------- UTILITIES ---------------------- */
+    const $ = (sel, root = document) => root.querySelector(sel);
+    const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+    const LS = {
+      get(k, d=null){ try { const v = localStorage.getItem(k); return v===null? d : JSON.parse(v); } catch { return d; } },
+      set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+      del(k){ try { localStorage.removeItem(k); } catch {} }
+    };
 
-      // Persistent state
-      const store = {
-        get(k, def) {
-          try { const v = localStorage.getItem(k); return v === null ? def : JSON.parse(v) } catch(e){ return def }
-        },
-        set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)) } catch(e){} }
-      };
+    const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
+    function fmt2(n){ return n.toString().padStart(2, '0'); }
 
-      // THEME
-      const themeToggle = $('#themeToggle');
-      const customizer = $('#customizer');
-      const openCustomize = $('#openCustomize');
-      const accentColor = $('#accentColor');
-      const fontFamily = $('#fontFamily');
-      const radiusRange = $('#radiusRange');
-      const uiScale = $('#uiScale');
-      const resetTheme = $('#resetTheme');
+    /* ---------------------- THEME & SETTINGS ---------------------- */
+    const themeDefaults = {
+      mode: "dark",
+      primary: "#6ea8fe",
+      accent: "#7ae0b8",
+      btnRadius: 12,
+      bodyFont: "sans",
+      headingFont: "sans",
+      clockMode: "both",
+      is12h: false,
+      smoothSeconds: true
+    };
 
-      const themeState = store.get('themeState', {
-        mode: 'system', // system | light | dark
-        accent: '#6c5ce7',
-        font: 'sans', // sans | serif | mono
-        radius: 12,
-        scale: 100
-      });
+    const state = {
+      theme: LS.get("theme", themeDefaults),
+      pomo: LS.get("pomo", {
+        focusMin: 25, shortMin: 5, longMin: 15, longEvery: 4, autoNext: false,
+        sessions: 0, completed: 0
+      }),
+      quote: LS.get("quote", { hourKey: null, text: "" })
+    };
 
-      function applyTheme() {
-        const root = document.documentElement;
-        // mode
-        root.removeAttribute('data-theme');
-        if (themeState.mode === 'light') root.setAttribute('data-theme', 'light');
-        if (themeState.mode === 'dark') root.setAttribute('data-theme', 'dark');
-        // accent
-        root.style.setProperty('--accent', themeState.accent);
-        // font
-        if (themeState.font === 'sans') root.style.setProperty('--font', 'system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"');
-        if (themeState.font === 'serif') root.style.setProperty('--font', 'Georgia, "Times New Roman", Times, serif');
-        if (themeState.font === 'mono') root.style.setProperty('--font', 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace');
-        // radius
-        root.style.setProperty('--radius', themeState.radius + 'px');
-        // scale
-        root.style.setProperty('font-size', themeState.scale + '%');
+    function applyTheme() {
+      const root = document.body;
+      root.classList.remove("theme-light", "theme-dark");
+      root.classList.add(state.theme.mode === "light" ? "theme-light" : "theme-dark");
+      document.documentElement.style.setProperty("--primary", state.theme.primary);
+      document.documentElement.style.setProperty("--accent", state.theme.accent);
+      document.documentElement.style.setProperty("--btn-radius", state.theme.btnRadius + "px");
 
-        // update controls
-        accentColor.value = themeState.accent;
-        fontFamily.value = themeState.font;
-        radiusRange.value = themeState.radius;
-        uiScale.value = themeState.scale;
-      }
+      const bodyMap = { sans: "var(--font-sans)", serif: "var(--font-serif)", mono: "var(--font-mono)" };
+      const headMap = { sans: "var(--font-sans)", serif: "var(--font-serif)", mono: "var(--font-mono)" };
+      document.documentElement.style.setProperty("--body-font", bodyMap[state.theme.bodyFont] || "var(--font-sans)");
+      document.documentElement.style.setProperty("--heading-font", headMap[state.theme.headingFont] || "var(--font-sans)");
+
+      // Sync controls
+      $("#primaryColor").value = state.theme.primary;
+      $("#accentColor").value = state.theme.accent;
+      $("#btnRadius").value = state.theme.btnRadius;
+      $("#bodyFont").value = state.theme.bodyFont;
+      $("#headingFont").value = state.theme.headingFont;
+      $("#clockMode").value = state.theme.clockMode;
+      $("#clockModeInline").value = state.theme.clockMode;
+      $("#is12h").value = String(state.theme.is12h);
+      $("#formatToggle").value = String(state.theme.is12h);
+      $("#smoothSeconds").value = String(state.theme.smoothSeconds);
+
+      applyClockMode();
+    }
+
+    // Settings panel toggle
+    const settingsPanel = $("#settingsPanel");
+    $("#toggleSettings").addEventListener("click", () => {
+      const nowHidden = !settingsPanel.classList.toggle("hidden");
+      $("#toggleSettings").setAttribute("aria-expanded", String(!nowHidden));
+    });
+
+    // Theme buttons
+    $("#lightModeBtn").addEventListener("click", () => {
+      state.theme.mode = "light";
+      LS.set("theme", state.theme);
       applyTheme();
+      swapModeButtons();
+    });
+    $("#darkModeBtn").addEventListener("click", () => {
+      state.theme.mode = "dark";
+      LS.set("theme", state.theme);
+      applyTheme();
+      swapModeButtons();
+    });
 
-      themeToggle.addEventListener('click', () => {
-        const current = document.documentElement.getAttribute('data-theme') || 'system';
-        if (current === 'dark') themeState.mode = 'light';
-        else if (current === 'light') themeState.mode = 'system';
-        else themeState.mode = 'dark';
-        store.set('themeState', themeState);
-        applyTheme();
-        themeToggle.textContent = (document.documentElement.getAttribute('data-theme') || 'system') === 'dark' ? '🌞 Light' : '🌗 Theme';
-      });
-
-      openCustomize.addEventListener('click', () => {
-        customizer.open = true;
-        customizer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      });
-      accentColor.addEventListener('input', e => { themeState.accent = e.target.value; store.set('themeState', themeState); applyTheme(); });
-      fontFamily.addEventListener('change', e => { themeState.font = e.target.value; store.set('themeState', themeState); applyTheme(); });
-      radiusRange.addEventListener('input', e => { themeState.radius = +e.target.value; store.set('themeState', themeState); applyTheme(); });
-      uiScale.addEventListener('input', e => { themeState.scale = +e.target.value; store.set('themeState', themeState); applyTheme(); });
-      resetTheme.addEventListener('click', () => {
-        themeState.mode = 'system';
-        themeState.accent = '#6c5ce7';
-        themeState.font = 'sans';
-        themeState.radius = 12;
-        themeState.scale = 100;
-        store.set('themeState', themeState);
-        applyTheme();
-      });
-
-      // CLOCKS
-      const hourHand = $('#hourHand');
-      const minuteHand = $('#minuteHand');
-      const secondHand = $('#secondHand');
-      const digitalTime = $('#digitalTime');
-      const digitalDate = $('#digitalDate');
-      const analog = $('#analog');
-      const numbersEl = $('#numbers');
-
-      const clockPrefs = store.get('clockPrefs', {
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
-        format: '24',
-        seconds: true,
-        analogStyle: 'classic'
-      });
-
-      const timeZoneSelect = $('#timeZone');
-      const timeFormat = $('#timeFormat');
-      const showSeconds = $('#showSeconds');
-      const analogStyle = $('#analogStyle');
-      const clockTags = $('#clockTags');
-
-      function populateNumbers() {
-        numbersEl.innerHTML = '';
-        for (let i = 1; i <= 12; i++) {
-          const span = document.createElement('span');
-          span.textContent = String(i);
-          const angle = (i / 12) * 360;
-          const r = 44; // % radius for positioning
-          span.style.transform = `rotate(${angle}deg) translateY(calc(var(--clock-size) * -0.${100 - r})) rotate(${-angle}deg)`;
-          numbersEl.appendChild(span);
-        }
+    function swapModeButtons(){
+      const light = $("#lightModeBtn");
+      const dark = $("#darkModeBtn");
+      if (state.theme.mode === "light") {
+        light.classList.remove("ghost");
+        dark.classList.add("ghost");
+      } else {
+        dark.classList.remove("ghost");
+        light.classList.add("ghost");
       }
-      populateNumbers();
+    }
 
-      function supportedTimeZones() {
-        let zones = [];
-        if (Intl.supportedValuesOf) {
-          try { zones = Intl.supportedValuesOf('timeZone'); } catch(e){}
-        }
-        if (!zones || zones.length === 0) {
-          zones = [
-            'Asia/Jakarta','Asia/Makassar','Asia/Jayapura','Asia/Singapore','Asia/Bangkok',
-            'Asia/Tokyo','Asia/Seoul','Asia/Dubai',
-            'Europe/London','Europe/Paris','Europe/Berlin','Europe/Moscow',
-            'America/New_York','America/Chicago','America/Denver','America/Los_Angeles','America/Sao_Paulo',
-            'Africa/Johannesburg','UTC','Australia/Sydney','Pacific/Auckland','Indian/Maldives'
-          ];
-        }
-        return zones;
-      }
+    // Theme controls
+    $("#primaryColor").addEventListener("input", e => {
+      state.theme.primary = e.target.value;
+      LS.set("theme", state.theme);
+      applyTheme();
+    });
+    $("#accentColor").addEventListener("input", e => {
+      state.theme.accent = e.target.value;
+      LS.set("theme", state.theme);
+      applyTheme();
+    });
+    $("#btnRadius").addEventListener("input", e => {
+      state.theme.btnRadius = parseInt(e.target.value, 10);
+      LS.set("theme", state.theme);
+      applyTheme();
+    });
+    $("#bodyFont").addEventListener("change", e => {
+      state.theme.bodyFont = e.target.value;
+      LS.set("theme", state.theme);
+      applyTheme();
+    });
+    $("#headingFont").addEventListener("change", e => {
+      state.theme.headingFont = e.target.value;
+      LS.set("theme", state.theme);
+      applyTheme();
+    });
+    $("#clockMode").addEventListener("change", e => {
+      state.theme.clockMode = e.target.value;
+      LS.set("theme", state.theme);
+      applyTheme();
+    });
+    $("#clockModeInline").addEventListener("change", e => {
+      state.theme.clockMode = e.target.value;
+      LS.set("theme", state.theme);
+      applyTheme();
+    });
+    $("#is12h").addEventListener("change", e => {
+      state.theme.is12h = (e.target.value === "true");
+      LS.set("theme", state.theme);
+      applyTheme();
+    });
+    $("#formatToggle").addEventListener("change", e => {
+      state.theme.is12h = (e.target.value === "true");
+      LS.set("theme", state.theme);
+      applyTheme();
+    });
+    $("#smoothSeconds").addEventListener("change", e => {
+      state.theme.smoothSeconds = (e.target.value === "true");
+      LS.set("theme", state.theme);
+      applyTheme();
+    });
 
-      function populateTimeZones() {
-        const zones = supportedTimeZones();
-        timeZoneSelect.innerHTML = '';
-        // Grouping simple
-        const current = clockPrefs.timeZone;
-        // Put current on top
-        const optCurrent = document.createElement('option');
-        optCurrent.value = current; optCurrent.textContent = `${current} (default)`;
-        timeZoneSelect.appendChild(optCurrent);
-        // Add common
-        const commons = ['Asia/Jakarta','Asia/Makassar','Asia/Jayapura','Asia/Singapore','Asia/Tokyo','Europe/London','Europe/Paris','America/New_York','America/Los_Angeles','Australia/Sydney','UTC'];
-        for (const z of commons) {
-          if (z !== current) {
-            const o = document.createElement('option'); o.value = z; o.textContent = z; timeZoneSelect.appendChild(o);
-          }
-        }
-        // Separator
-        const osep = document.createElement('option'); osep.disabled = true; osep.textContent = '──────────';
-        timeZoneSelect.appendChild(osep);
-        // Others
-        let count = 0;
-        for (const z of supportedTimeZones()) {
-          if ([current, ...commons].includes(z)) continue;
-          const o = document.createElement('option'); o.value = z; o.textContent = z; timeZoneSelect.appendChild(o);
-          if (++count > 200) break;
-        }
-        timeZoneSelect.value = clockPrefs.timeZone;
-      }
-      populateTimeZones();
+    $("#resetTheme").addEventListener("click", () => {
+      state.theme = {...themeDefaults};
+      LS.set("theme", state.theme);
+      applyTheme();
+      swapModeButtons();
+    });
 
-      timeFormat.value = clockPrefs.format;
-      showSeconds.checked = clockPrefs.seconds;
-      analogStyle.value = clockPrefs.analogStyle;
-      analog.classList.toggle('classic', clockPrefs.analogStyle === 'classic');
-      analog.classList.toggle('minimal', clockPrefs.analogStyle === 'minimal');
+    function applyClockMode(){
+      const mode = state.theme.clockMode;
+      const analog = $("#analogCard");
+      const digital = $("#digitalCard");
+      if (mode === "both") {
+        analog.classList.remove("hidden");
+        digital.classList.remove("hidden");
+      } else if (mode === "analog") {
+        analog.classList.remove("hidden");
+        digital.classList.add("hidden");
+      } else {
+        analog.classList.add("hidden");
+        digital.classList.remove("hidden");
+      }
+    }
 
-      function partsFor(date, timeZone) {
-        const fmt = new Intl.DateTimeFormat('en-GB', {
-          timeZone, hour12: false,
-          hour: '2-digit', minute: '2-digit', second: '2-digit',
-          weekday: 'long', year: 'numeric', month: 'long', day: '2-digit'
-        });
-        const parts = fmt.formatToParts(date);
-        const obj = {};
-        for (const p of parts) obj[p.type] = p.value;
-        return obj;
+    /* ---------------------- CLOCKS ---------------------- */
+    // Populate analog ticks
+    function createTicks() {
+      const wrap = $("#analogClock");
+      // clear existing ticks if any
+      $$(".tick", wrap).forEach(n => n.remove());
+      for (let i = 0; i < 60; i++) {
+        const tick = document.createElement("div");
+        tick.className = "tick " + (i % 5 === 0 ? "hour" : "min");
+        const ang = i * 6;
+        tick.style.transform = `translate(-50%, -50%) rotate(${ang}deg) translate(calc(50% - 8px), 0)`;
+        const bar = document.createElement("div");
+        bar.className = "bar";
+        tick.appendChild(bar);
+        wrap.appendChild(tick);
       }
+    }
+    createTicks();
 
-      function formatDigital(hours, minutes, seconds, format, withSeconds) {
-        let h = +hours;
-        let suffix = '';
-        if (format === '12') {
-          suffix = h >= 12 ? ' PM' : ' AM';
-          h = h % 12; if (h === 0) h = 12;
-        }
-        const mm = String(minutes).padStart(2,'0');
-        const ss = String(seconds).padStart(2,'0');
-        const hh = String(h).padStart(2,'0');
-        return hh + ':' + mm + (withSeconds ? (':' + ss) : '') + (format === '12' ? suffix : '');
+    function updateDigital(now = new Date()) {
+      const is12 = state.theme.is12h;
+      let h = now.getHours();
+      const m = now.getMinutes();
+      const s = now.getSeconds();
+      let mer = "";
+      if (is12) {
+        mer = h >= 12 ? " PM" : " AM";
+        h = h % 12 || 12;
       }
+      $("#digitalTime").textContent = `${fmt2(h)}:${fmt2(m)}:${fmt2(s)}${is12 ? mer : ""}`;
 
-      function updateTags(timeZone) {
-        try {
-          const now = new Date();
-          const fmt = new Intl.DateTimeFormat('en-US', { timeZone, timeZoneName: 'shortOffset' });
-          const tz = fmt.formatToParts(now).find(p => p.type === 'timeZoneName')?.value || '';
-          const tag1 = document.createElement('span'); tag1.className = 'tag'; tag1.textContent = tz;
-          const tag2 = document.createElement('span'); tag2.className = 'tag'; tag2.textContent = timeZone;
-          clockTags.innerHTML = ''; clockTags.appendChild(tag1); clockTags.appendChild(tag2);
-        } catch(e) {
-          clockTags.innerHTML = `<span class="tag">${timeZone}</span>`;
-        }
-      }
+      const weekday = now.toLocaleDateString(undefined, { weekday: "long" });
+      const dateStr = now.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+      $("#digitalDate").textContent = `${weekday}, ${dateStr}`;
+    }
 
-      function updateClock() {
-        const now = new Date();
-        const p = partsFor(now, clockPrefs.timeZone);
-        const H = +p.hour, M = +p.minute, S = +p.second;
-        // Analog
-        const hourAngle = (H % 12) * 30 + M * 0.5 + S * (0.5 / 60);
-        const minuteAngle = M * 6 + S * 0.1;
-        const secondAngle = S * 6;
-        hourHand.style.transform = `translate(-50%, -100%) rotate(${hourAngle}deg)`;
-        minuteHand.style.transform = `translate(-50%, -100%) rotate(${minuteAngle}deg)`;
-        secondHand.style.transform = `translate(-50%, -100%) rotate(${secondAngle}deg)`;
-        secondHand.style.opacity = clockPrefs.seconds ? '1' : '0.35';
+    let prevSec = -1;
+    function updateAnalog(now = new Date()) {
+      const ms = now.getMilliseconds();
+      const s = now.getSeconds() + (state.theme.smoothSeconds ? ms/1000 : 0);
+      const m = now.getMinutes() + s/60;
+      const h = now.getHours() % 12 + m/60;
 
-        // Digital
-        digitalTime.textContent = formatDigital(p.hour, p.minute, p.second, clockPrefs.format, clockPrefs.seconds);
-        const locale = navigator.language || 'id-ID';
-        const dateFmt = new Intl.DateTimeFormat(locale, {
-          timeZone: clockPrefs.timeZone,
-          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-        });
-        digitalDate.textContent = dateFmt.format(now);
-      }
-      updateTags(clockPrefs.timeZone);
-      updateClock();
-      let clockTimer = setInterval(updateClock, 500);
+      $("#hourHand").style.transform = `translate(-50%, -100%) rotate(${h * 30}deg)`;
+      $("#minuteHand").style.transform = `translate(-50%, -100%) rotate(${m * 6}deg)`;
+      $("#secondHand").style.transform = `translate(-50%, -100%) rotate(${s * 6}deg)`;
 
-      timeZoneSelect.addEventListener('change', e => {
-        clockPrefs.timeZone = e.target.value;
-        store.set('clockPrefs', clockPrefs);
-        updateTags(clockPrefs.timeZone);
-        updateClock();
-      });
-      timeFormat.addEventListener('change', e => {
-        clockPrefs.format = e.target.value;
-        store.set('clockPrefs', clockPrefs);
-        updateClock();
-      });
-      showSeconds.addEventListener('change', e => {
-        clockPrefs.seconds = e.target.checked;
-        store.set('clockPrefs', clockPrefs);
-        updateClock();
-      });
-      analogStyle.addEventListener('change', e => {
-        clockPrefs.analogStyle = e.target.value;
-        store.set('clockPrefs', clockPrefs);
-        analog.classList.toggle('classic', clockPrefs.analogStyle === 'classic');
-        analog.classList.toggle('minimal', clockPrefs.analogStyle === 'minimal');
-      });
+      // Optimize digital update to once per second
+      if (Math.floor(s) !== prevSec) {
+        prevSec = Math.floor(s);
+        updateDigital(now);
+      }
+    }
 
-      // POMODORO
-      const chipFocus = $('#chipFocus'), chipShort = $('#chipShort'), chipLong = $('#chipLong');
-      const pomStart = $('#pomStart'), pomPause = $('#pomPause'), pomReset = $('#pomReset'), pomSkip = $('#pomSkip');
-      const durFocus = $('#durFocus'), durShort = $('#durShort'), durLong = $('#durLong'), longEvery = $('#longEvery');
-      const autoStart = $('#autoStart'), notify = $('#notify');
-      const pomTime = $('#pomTime'), phaseLabel = $('#phaseLabel'), pomInfo = $('#pomInfo');
-      const progressCircle = $('#progress');
+    function tick() {
+      const now = new Date();
+      updateAnalog(now);
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
 
-      const CIRCUM = 2 * Math.PI * 52;
-      progressCircle.setAttribute('stroke-dasharray', CIRCUM);
-      progressCircle.setAttribute('stroke-dashoffset', CIRCUM);
+    /* ---------------------- POMODORO ---------------------- */
+    const pomo = {
+      mode: "focus", // "focus" | "short" | "long"
+      remaining: state.pomo.focusMin * 60, // seconds
+      running: false,
+      timerId: null,
+      cycleCount: 0 // completed focus sessions since last long break
+    };
 
-      const pomState = store.get('pomState', {
-        mode: 'focus', // focus | short | long
-        running: false,
-        remainingMs: 25*60*1000,
-        endAt: null,
-        sessions: 0,
-        focusMin: 25,
-        shortMin: 5,
-        longMin: 15,
-        longEvery: 4,
-        auto: false,
-        notify: false
-      });
+    // Load saved
+    $("#focusMin").value = state.pomo.focusMin;
+    $("#shortMin").value = state.pomo.shortMin;
+    $("#longMin").value = state.pomo.longMin;
+    $("#longEvery").value = state.pomo.longEvery;
+    $("#pomoAuto").checked = !!state.pomo.autoNext;
+    updatePomoUI(true);
 
-      function syncPomControls() {
-        durFocus.value = pomState.focusMin;
-        durShort.value = pomState.shortMin;
-        durLong.value = pomState.longMin;
-        longEvery.value = pomState.longEvery;
-        autoStart.checked = pomState.auto;
-        notify.checked = pomState.notify;
-        // chips
-        $$('.chip').forEach(ch => ch.classList.remove('active'));
-        if (pomState.mode === 'focus') chipFocus.classList.add('active');
-        if (pomState.mode === 'short') chipShort.classList.add('active');
-        if (pomState.mode === 'long') chipLong.classList.add('active');
-        phaseLabel.textContent = pomState.mode === 'focus' ? 'Fokus' : (pomState.mode === 'short' ? 'Istirahat Singkat' : 'Istirahat Panjang');
-        pomInfo.textContent = `Sesi ${pomState.sessions} · Auto: ${pomState.auto ? 'Nyala' : 'Mati'}`;
-        pomPause.disabled = !pomState.running;
-        pomStart.textContent = pomState.running ? '⏸ Jeda' : '▶ Mulai';
-      }
-      function setMode(mode) {
-        pomState.mode = mode;
-        pomState.remainingMs = (mode === 'focus' ? pomState.focusMin : mode === 'short' ? pomState.shortMin : pomState.longMin) * 60 * 1000;
-        pomState.running = false;
-        pomState.endAt = null;
-        store.set('pomState', pomState);
-        syncPomControls();
-        drawPom();
-      }
-      function formatMMSS(ms) {
-        const sec = Math.max(0, Math.round(ms/1000));
-        const m = Math.floor(sec/60);
-        const s = sec % 60;
-        return String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
-      }
-      function drawPom() {
-        pomTime.textContent = formatMMSS(pomState.remainingMs);
-        const total = (pomState.mode === 'focus' ? pomState.focusMin : pomState.mode === 'short' ? pomState.shortMin : pomState.longMin) * 60 * 1000;
-        const progress = 1 - (pomState.remainingMs / total);
-        const offset = Math.max(0, Math.min(CIRCUM, CIRCUM * (1 - progress)));
-        progressCircle.setAttribute('stroke-dashoffset', offset);
-      }
-      function tickPom() {
-        if (!pomState.running) return;
-        const now = Date.now();
-        pomState.remainingMs = Math.max(0, pomState.endAt - now);
-        if (pomState.remainingMs <= 0) {
-          pomState.running = false;
-          pomState.endAt = null;
-          onPomEnd();
-        }
-        drawPom();
-      }
-      let pomTimer = setInterval(tickPom, 200);
+    function secondsToMMSS(sec) {
+      sec = Math.max(0, Math.floor(sec));
+      const mm = Math.floor(sec / 60);
+      const ss = sec % 60;
+      return `${fmt2(mm)}:${fmt2(ss)}`;
+    }
 
-      function startPom() {
-        if (pomState.running) { pausePom(); return; }
-        pomState.running = true;
-        if (!pomState.endAt) pomState.endAt = Date.now() + pomState.remainingMs;
-        else pomState.endAt = Date.now() + pomState.remainingMs;
-        store.set('pomState', pomState);
-        pomPause.disabled = false;
-        pomStart.textContent = '⏸ Jeda';
+    function setRingProgress(remain, total) {
+      const frac = 1 - (remain / total);
+      const deg = Math.min(360, Math.max(0, frac * 360));
+      $("#pomoRing").style.setProperty("--deg", deg + "deg");
+    }
+
+    function setPomoMode(nextMode) {
+      pomo.mode = nextMode;
+      if (nextMode === "focus") {
+        pomo.remaining = state.pomo.focusMin * 60;
+        $("#pomoState").textContent = "Focus";
+      } else if (nextMode === "short") {
+        pomo.remaining = state.pomo.shortMin * 60;
+        $("#pomoState").textContent = "Short Break";
+      } else {
+        pomo.remaining = state.pomo.longMin * 60;
+        $("#pomoState").textContent = "Long Break";
       }
-      function pausePom() {
-        pomState.running = false;
-        pomState.remainingMs = Math.max(0, pomState.endAt - Date.now());
-        pomState.endAt = null;
-        store.set('pomState', pomState);
-        pomPause.disabled = true;
-        pomStart.textContent = '▶ Start';
-      }
-      function resetPom() {
-        setMode(pomState.mode);
-      }
-      function nextMode() {
-        if (pomState.mode === 'focus') {
-          // decide short or long
-          if (pomState.sessions > 0 && pomState.sessions % pomState.longEvery === 0) {
-            setMode('long');
+      updatePomoUI(true);
+    }
+
+    function updatePomoUI(resetRing = false) {
+      $("#pomoTime").textContent = secondsToMMSS(pomo.remaining);
+      const total =
+        pomo.mode === "focus" ? state.pomo.focusMin * 60 :
+        pomo.mode === "short" ? state.pomo.shortMin * 60 :
+        state.pomo.longMin * 60;
+      if (resetRing) setRingProgress(pomo.remaining, total);
+      $("#pomoStats").textContent = `Sessions: ${state.pomo.sessions} • Completed focus: ${state.pomo.completed}`;
+    }
+
+    function startPomo() {
+      if (pomo.running) return;
+      pomo.running = true;
+      $("#pomoStart").disabled = true;
+      $("#pomoPause").disabled = false;
+      $("#pomoReset").disabled = false;
+
+      let last = performance.now();
+      function step(now) {
+        if (!pomo.running) return;
+        const dt = (now - last) / 1000; // seconds
+        last = now;
+
+        pomo.remaining -= dt;
+        const total =
+          pomo.mode === "focus" ? state.pomo.focusMin * 60 :
+          pomo.mode === "short" ? state.pomo.shortMin * 60 :
+          state.pomo.longMin * 60;
+        setRingProgress(pomo.remaining, total);
+        $("#pomoTime").textContent = secondsToMMSS(pomo.remaining);
+
+        if (pomo.remaining <= 0) {
+          // Transition
+          beep(200, 880);
+          pomo.running = false;
+          state.pomo.sessions += 1;
+          if (pomo.mode === "focus") {
+            state.pomo.completed += 1;
+            pomo.cycleCount += 1;
+            if (pomo.cycleCount >= state.pomo.longEvery) {
+              pomo.cycleCount = 0;
+              setPomoMode("long");
+            } else {
+              setPomoMode("short");
+            }
           } else {
-            setMode('short');
+            setPomoMode("focus");
           }
-        } else {
-          setMode('focus');
-        }
-      }
-      function onPomEnd() {
-        // Complete session if focus
-        if (pomState.mode === 'focus') pomState.sessions++;
-        store.set('pomState', pomState);
-        syncPomControls();
-        beep();
-        notifyUser(`Done!: ${phaseLabel.textContent}`, pomState.mode === 'focus' ? 'Time for a break.' : 'Let's get back to work!');
-        if (pomState.auto) {
-          nextMode();
-          startPom();
-        }
-      }
+          LS.set("pomo", state.pomo);
+          updatePomoUI(true);
 
-      function setDurationsFromInputs() {
-        const f = Math.max(1, Math.min(120, +durFocus.value || 25));
-        const s = Math.max(1, Math.min(60, +durShort.value || 5));
-        const l = Math.max(1, Math.min(120, +durLong.value || 15));
-        const every = Math.max(2, Math.min(12, +longEvery.value || 4));
-        pomState.focusMin = f; pomState.shortMin = s; pomState.longMin = l; pomState.longEvery = every;
-        store.set('pomState', pomState);
-        setMode(pomState.mode);
-      }
-
-      // Web Audio beep
-      let audioCtx;
-      function beep() {
-        try {
-          if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-          const o = audioCtx.createOscillator();
-          const g = audioCtx.createGain();
-          o.type = 'sine';
-          o.frequency.value = 880;
-          o.connect(g); g.connect(audioCtx.destination);
-          g.gain.setValueAtTime(0.0001, audioCtx.currentTime);
-          g.gain.exponentialRampToValueAtTime(0.2, audioCtx.currentTime + 0.02);
-          g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.22);
-          o.start(); o.stop(audioCtx.currentTime + 0.24);
-          if (navigator.vibrate) navigator.vibrate(80);
-        } catch(e){}
-      }
-
-      async function notifyUser(title, body) {
-        try {
-          if (!pomState.notify) return;
-          if (!('Notification' in window)) return;
-          if (Notification.permission === 'granted') {
-            new Notification(title, { body });
-          } else if (Notification.permission !== 'denied') {
-            const perm = await Notification.requestPermission();
-            if (perm === 'granted') new Notification(title, { body });
+          if (state.pomo.autoNext) {
+            startPomo();
+          } else {
+            $("#pomoStart").disabled = false;
           }
-        } catch(e){}
-      }
-
-      chipFocus.addEventListener('click', () => setMode('focus'));
-      chipShort.addEventListener('click', () => setMode('short'));
-      chipLong.addEventListener('click', () => setMode('long'));
-      pomStart.addEventListener('click', startPom);
-      pomPause.addEventListener('click', pausePom);
-      pomReset.addEventListener('click', resetPom);
-      pomSkip.addEventListener('click', () => { nextMode(); drawPom(); });
-
-      durFocus.addEventListener('change', setDurationsFromInputs);
-      durShort.addEventListener('change', setDurationsFromInputs);
-      durLong.addEventListener('change', setDurationsFromInputs);
-      longEvery.addEventListener('change', setDurationsFromInputs);
-      autoStart.addEventListener('change', e => { pomState.auto = e.target.checked; store.set('pomState', pomState); syncPomControls(); });
-      notify.addEventListener('change', e => { pomState.notify = e.target.checked; store.set('pomState', pomState); if (e.target.checked) notifyUser('Notifikasi diaktifkan', 'Kami akan memberi tahu saat fase selesai.'); });
-
-      // Initialize Pomodoro
-      syncPomControls(); drawPom();
-
-      // MOTIVATION QUOTES
-      const quoteText = $('#quoteText');
-      const quoteStatus = $('#quoteStatus');
-      const newQuoteBtn = $('#newQuote');
-      const copyQuoteBtn = $('#copyQuote');
-
-      // Seeded RNG
-      function xfnv1a(str) {
-        for(var i = 0, h = 2166136261 >>> 0; i < str.length; i++)
-          h = Math.imul(h ^ str.charCodeAt(i), 16777619);
-        return () => {
-          h += h << 13; h ^= h >>> 7;
-          h += h << 3;  h ^= h >>> 17;
-          return (h += h << 5) >>> 0;
+          return;
         }
+
+        pomo.timerId = requestAnimationFrame(step);
       }
-      function mulberry32(a) {
-        return function() {
-          var t = a += 0x6D2B79F5;
-          t = Math.imul(t ^ t >>> 15, t | 1);
-          t ^= t + Math.imul(t ^ t >>> 7, t | 61);
-          return ((t ^ t >>> 14) >>> 0) / 4294967296;
-        }
+      pomo.timerId = requestAnimationFrame(step);
+    }
+
+    function pausePomo() {
+      if (!pomo.running) return;
+      pomo.running = false;
+      $("#pomoStart").disabled = false;
+      if (pomo.timerId) cancelAnimationFrame(pomo.timerId);
+      pomo.timerId = null;
+    }
+
+    function resetPomo() {
+      pausePomo();
+      setPomoMode("focus");
+      // Keep stats, only reset current timer
+      updatePomoUI(true);
+      $("#pomoStart").disabled = false;
+    }
+
+    $("#pomoStart").addEventListener("click", startPomo);
+    $("#pomoPause").addEventListener("click", pausePomo);
+    $("#pomoReset").addEventListener("click", resetPomo);
+
+    $("#pomoAuto").addEventListener("change", (e) => {
+      state.pomo.autoNext = e.target.checked;
+      LS.set("pomo", state.pomo);
+    });
+
+    $("#focusMin").addEventListener("change", e => {
+      state.pomo.focusMin = clamp(parseInt(e.target.value, 10) || 25, 1, 120);
+      e.target.value = state.pomo.focusMin;
+      LS.set("pomo", state.pomo);
+      if (pomo.mode === "focus" && !pomo.running) setPomoMode("focus");
+    });
+    $("#shortMin").addEventListener("change", e => {
+      state.pomo.shortMin = clamp(parseInt(e.target.value, 10) || 5, 1, 60);
+      e.target.value = state.pomo.shortMin;
+      LS.set("pomo", state.pomo);
+      if (pomo.mode === "short" && !pomo.running) setPomoMode("short");
+    });
+    $("#longMin").addEventListener("change", e => {
+      state.pomo.longMin = clamp(parseInt(e.target.value, 10) || 15, 1, 60);
+      e.target.value = state.pomo.longMin;
+      LS.set("pomo", state.pomo);
+      if (pomo.mode === "long" && !pomo.running) setPomoMode("long");
+    });
+    $("#longEvery").addEventListener("change", e => {
+      state.pomo.longEvery = clamp(parseInt(e.target.value, 10) || 4, 2, 12);
+      e.target.value = state.pomo.longEvery;
+      LS.set("pomo", state.pomo);
+    });
+
+    function beep(duration=200, frequency=880, volume=0.2) {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = "sine";
+        o.frequency.value = frequency;
+        g.gain.value = volume;
+        o.connect(g); g.connect(ctx.destination);
+        o.start();
+        setTimeout(() => {
+          o.stop();
+          ctx.close();
+        }, duration);
+      } catch {}
+    }
+
+    /* ---------------------- HOURLY MOTIVATION ---------------------- */
+    // Seeded RNG for deterministic quote per hour (so refresh won't change it)
+    function simpleHash(str) {
+      let h = 2166136261 >>> 0;
+      for (let i = 0; i < str.length; i++) {
+        h ^= str.charCodeAt(i);
+        h = Math.imul(h, 16777619);
       }
-      function seededRandom(seedStr) {
-        const seed = xfnv1a(seedStr)();
-        return mulberry32(seed);
+      return h >>> 0;
+    }
+    function lcg(seed) {
+      let s = seed >>> 0;
+      return function() {
+        s = (Math.imul(1664525, s) + 1013904223) >>> 0;
+        return (s >>> 0) / 4294967296;
+      };
+    }
+    function choice(rand, arr) { return arr[Math.floor(rand() * arr.length)]; }
+
+    // Building blocks for infinite, original lines
+    const Q = {
+      subjects: [
+        "Your story", "Your effort", "Your curiosity", "Your courage", "Your progress",
+        "Your resilience", "Your perspective", "Your discipline", "Your kindness",
+        "Your patience", "Your creativity", "Your focus", "Your voice", "Your vision",
+        "Your humility", "Your questions", "Your consistency", "Your momentum",
+        "Your habits", "Your preparation", "Your belief", "Your choices", "Your craft",
+        "Your practice", "Your energy"
+      ],
+      verbs: [
+        "shapes", "builds", "guides", "amplifies", "unlocks", "compounds",
+        "clarifies", "anchors", "elevates", "transforms", "directs",
+        "sustains", "refines", "calibrates"
+      ],
+      objects: [
+        "the future you want", "every next step", "what seems possible", "the path forward",
+        "your luck", "your baseline", "what lasts", "who you become", "your tomorrow",
+        "your team", "your outcomes", "your readiness", "your confidence"
+      ],
+      closers: [
+        "Start where you are.", "Move one clean inch.", "Small wins stack into avalanches.",
+        "Make it obvious and easy.", "Be brave enough to be bad at something new.",
+        "Progress loves patience.", "Direction beats speed.", "You are allowed to be a beginner.",
+        "Consistency is a superpower.", "Let practice make the noise.", "Decide once, execute daily.",
+        "You can do hard things.", "Choose effort over approval.", "Less friction, more action.",
+        "Ship, learn, iterate.", "No zero days.", "Win the morning.", "Measure backward, aim forward.",
+        "Stay on the path.", "Honor your capacity.", "Feelings are data, not commands.",
+        "Sharpen your edges.", "Be relentlessly helpful.", "Make it count."
+      ],
+      openers: [
+        "Today,", "Right now,", "This hour,", "This moment,", "Before the sun sets,", "While it's quiet,",
+        "When in doubt,", "Between here and there,"
+      ],
+      directives: [
+        "take the smallest step that moves you forward",
+        "ask a better question",
+        "remove one friction",
+        "simplify the plan",
+        "start the timer and begin",
+        "prepare your tools",
+        "turn off one distraction",
+        "write the first sentence",
+        "do one deliberate rep",
+        "commit to ten minutes"
+      ]
+    };
+
+    function generateQuote(seedStr) {
+      const rand = lcg(simpleHash(seedStr));
+      const form = Math.floor(rand() * 4);
+      if (form === 0) {
+        // Subject-verb-object + closer
+        const s = choice(rand, Q.subjects);
+        const v = choice(rand, Q.verbs);
+        const o = choice(rand, Q.objects);
+        const c = choice(rand, Q.closers);
+        return `${s} ${v} ${o}. ${c}`;
+      } else if (form === 1) {
+        // Two-sentence: opener + directive; then closer
+        const op = choice(rand, Q.openers);
+        const d = choice(rand, Q.directives);
+        const c = choice(rand, Q.closers);
+        return `${op} ${d}. ${c}`;
+      } else if (form === 2) {
+        // Contrast
+        const d = choice(rand, Q.directives);
+        const s = choice(rand, Q.subjects);
+        return `Less noise, more ${d.split(" ")[0]}. ${s} deserves your best minutes.`;
+      } else {
+        // Ownership
+        const s = choice(rand, Q.subjects);
+        const c = choice(rand, Q.closers);
+        return `${s} is your leverage. Protect it daily. ${c}`;
       }
-      function pick(rng, arr) { return arr[Math.floor(rng() * arr.length)] }
+    }
 
-      // Building blocks
-      const starts = ["Start", "Begin", "This moment", "Right now", "Today", "From here", "Small steps", "Tiny wins", "Courage", "Clarity", "Consistency"];
-      const subjects = ["your story", "your focus", "your courage", "your effort", "your curiosity", "your patience", "your choices", "your discipline", "your compassion", "your habits", "your vision", "your resilience"];
-      const verbs = ["shapes", "builds", "unlocks", "guides", "amplifies", "defines", "powers", "elevates", "changes"];
-      const objects = ["the next chapter", "who you become", "tomorrow", "your direction", "your results", "your momentum", "the path ahead"];
-      const adv = ["one step at a time", "even when no one is watching", "especially on hard days", "with grace", "with patience", "with heart", "with purpose", "with intention"];
-      const closers = ["Keep going.", "Trust the process.", "Own it.", "Make it count.", "Stay the course.", "You got this.", "One more step.", "Be the author."];
+    function currentHourKey(date = new Date()) {
+      // e.g., "2025-09-15T13" (local time)
+      const y = date.getFullYear();
+      const m = fmt2(date.getMonth()+1);
+      const d = fmt2(date.getDate());
+      const h = fmt2(date.getHours());
+      return `${y}-${m}-${d}T${h}`;
+    }
 
-      const twoLiners = [
-        s => `${s}. ${capitalize(pick(rand, subjects))} ${pick(rand, verbs)} ${pick(rand, objects)}.`,
-        s => `${s}. Progress compounds ${pick(rand, adv)}.`,
-        s => `${s}. Direction beats speed.`,
-        s => `${s}. Consistency is a superpower.`,
-        s => `${s}. Purpose turns pressure into progress.`
-      ];
+    function scheduleNextTopOfHour() {
+      const now = new Date();
+      const msToNextHour = (60 - now.getMinutes() - 1) * 60 * 1000
+                         + (60 - now.getSeconds()) * 1000
+                         - now.getMilliseconds();
+      setTimeout(() => {
+        refreshHourlyQuote();
+        scheduleNextTopOfHour();
+      }, Math.max(1000, msToNextHour));
+    }
 
-      function capitalize(str) { return str.charAt(0).toUpperCase() + str.slice(1) }
+    function updateQuoteCountdown() {
+      const now = new Date();
+      const mins = 59 - now.getMinutes();
+      const secs = 59 - now.getSeconds();
+      $("#quoteCountdown").textContent = `Next auto-refresh in ${fmt2(mins)}:${fmt2(secs)} (at the top of the hour).`;
+    }
 
-      // Example
-      const classic = () => "Start. Your story is what you have, what you will always have. It is something to own.";
-
-      let rand = seededRandom('init');
-
-      function generateQuote(seedStr) {
-        rand = seededRandom(seedStr);
-
-        const stylePick = rand();
-        if (stylePick < 0.2) {
-          return classic();
-        } else if (stylePick < 0.6) {
-          const lead = pick(rand, starts);
-          const builder = pick(rand, twoLiners);
-          return builder(lead);
-        } else {
-          const s1 = `${pick(rand, starts)} ${pick(rand, adv)}.`;
-          const s2 = `${capitalize(pick(rand, subjects))} ${pick(rand, verbs)} ${pick(rand, objects)}.`;
-          const s3 = pick(rand, closers);
-          return `${s1} ${s2} ${s3}`;
-        }
+    function refreshHourlyQuote(forceNew = false) {
+      const hourKey = currentHourKey();
+      if (!forceNew && state.quote.hourKey === hourKey && state.quote.text) {
+        $("#quoteText").textContent = state.quote.text;
+        return;
       }
+      const text = generateQuote(hourKey);
+      state.quote = { hourKey, text };
+      LS.set("quote", state.quote);
+      $("#quoteText").textContent = text;
+    }
 
-      function hourKey(date = new Date()) {
-        return Math.floor(date.getTime() / 3600000);
+    $("#nextQuote").addEventListener("click", () => {
+      const hourKey = currentHourKey();
+      // Generate a new variation by appending a small salt
+      const salt = Date.now().toString(36).slice(-4);
+      const text = generateQuote(hourKey + "-" + salt);
+      state.quote = { hourKey, text };
+      LS.set("quote", state.quote);
+      $("#quoteText").textContent = text;
+    });
+
+    // Countdown ticker
+    setInterval(updateQuoteCountdown, 1000);
+
+    /* ---------------------- INIT ---------------------- */
+    applyTheme();
+    swapModeButtons();
+    refreshHourlyQuote();
+    scheduleNextTopOfHour();
+
+    // Also keep digital time setting in sync if changed inline
+    // (already wired above via #formatToggle)
+
+    // Accessibility: keyboard shortcuts
+    // s = start/pause, r = reset, n = new quote, t = toggle settings
+    document.addEventListener("keydown", (e) => {
+      const tag = (e.target && e.target.tagName) || "";
+      if (/(INPUT|SELECT|TEXTAREA)/.test(tag)) return;
+      if (e.key === "s") {
+        if (!pomo.running) startPomo(); else pausePomo();
+      } else if (e.key === "r") {
+        resetPomo();
+      } else if (e.key === "n") {
+        $("#nextQuote").click();
+      } else if (e.key === "t") {
+        $("#toggleSettings").click();
       }
-      function msUntilNextHour(date = new Date()) {
-        const next = new Date(date); next.setMinutes(0,0,0); next.setHours(date.getHours() + 1);
-        return next - date;
-      }
+    });
 
-      const quoteState = store.get('quoteState', {
-        lastHour: null,
-        text: null
-      });
-
-      function updateQuote(forceNew = false) {
-        const hk = hourKey();
-        if (forceNew || quoteState.lastHour !== hk || !quoteState.text) {
-          quoteState.text = generateQuote('Q-' + hk + '-' + Math.random());
-          quoteState.lastHour = hk;
-          store.set('quoteState', quoteState);
-        }
-        quoteText.textContent = '';
-
-        const txt = quoteState.text;
-        const firstWord = txt.split(/\s+/)[0].replace(/[^A-Za-z.]/g,'');
-        if (firstWord.replace('.', '') === 'Start') {
-          const em = document.createElement('em'); em.textContent = firstWord;
-          quoteText.appendChild(em);
-          quoteText.appendChild(document.createTextNode(txt.slice(firstWord.length)));
-        } else {
-          quoteText.textContent = txt;
-        }
-        updateQuoteStatus();
-      }
-
-      function updateQuoteStatus() {
-        const remaining = msUntilNextHour();
-        const h = Math.floor(remaining / 3600000);
-        const m = Math.floor((remaining % 3600000)/60000);
-        const s = Math.floor((remaining % 60000)/1000);
-        const fmt = (n) => String(n).padStart(2,'0');
-        quoteStatus.textContent = `Automatically changes every hour · ${fmt(h)}:${fmt(m)}:${fmt(s)} heading to the next quotes`;
-      }
-
-      updateQuote();
-      let quoteTick = setInterval(() => {
-        const currentHour = hourKey();
-        if (quoteState.lastHour !== currentHour) updateQuote(true);
-        updateQuoteStatus();
-      }, 1000);
-
-      newQuoteBtn.addEventListener('click', () => updateQuote(true));
-      copyQuoteBtn.addEventListener('click', async () => {
-        try {
-          await navigator.clipboard.writeText(quoteText.textContent.trim());
-          copyQuoteBtn.textContent = '✅ Copied';
-          setTimeout(() => copyQuoteBtn.textContent = '📋 Copy', 1200);
-        } catch(e) {
-          alert('Gagal menyalin. Salin manual: ' + quoteText.textContent.trim());
-        }
-      });
-
-      // Accessibility keyboard helpers
-      $$('.chip').forEach(chip => {
-        chip.setAttribute('tabindex', '0');
-        chip.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); chip.click(); } });
-      });
-
-      // Save clockPrefs on unload
-      window.addEventListener('beforeunload', () => {
-        store.set('clockPrefs', clockPrefs);
-        store.set('pomState', pomState);
-        store.set('themeState', themeState);
-        store.set('quoteState', quoteState);
-      });
-
-      // Initial UI state
-      updateTags(clockPrefs.timeZone);
-      updateClock();
-    })();
+    // Analog clock responsiveness: rebuild ticks on resize (for crisp layout)
+    let resizeTimer;
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => createTicks(), 150);
+    });
   </script>
 </body>
 </html>
