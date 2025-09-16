@@ -1003,33 +1003,6 @@
 
     updatePomoUI();
 
-    /* ----------------------------
-       Motivational texts
-       ---------------------------- */
-    const QUOTES_KEY = "tfs_user_quotes";
-    const baseQuotes = [
-      "Your story is what you have, what you will always have. It is something to own.",
-      "Small steps done daily become great distances over time.",
-      "Progress is progress, even when it’s not perfect.",
-      "Discipline beats motivation when motivation hides.",
-      "Start where you are. Use what you have. Do what you can.",
-      "You don’t have to be extreme—just consistent.",
-      "Your future is built by choices, not chances.",
-      "The obstacle is the way.",
-      "Tiny improvements compound into remarkable results.",
-      "Your pace is valid. Keep going."
-    ];
-    const fragments = {
-      openers: ["Your story","Your potential","Your journey","Your effort","Your growth","This moment","Today","Right now","The next step","The choice you make"],
-      verbs: ["defines","shapes","sets","builds","unlocks","guides","elevates","anchors"],
-      nouns: ["your future","your path","your momentum","your results","your craft","your confidence","your skill","your resilience"],
-      prompts: ["own it","lean in","keep going","trust the process","show up","start small","begin again","focus on what matters","embrace the effort","take the next step"],
-      closers: ["One hour at a time.","One step at a time.","Make it count.","You’ve got this.","Be proudly consistent.","Progress over perfection.","Let the work speak.","Little by little becomes a lot."],
-      bridges: ["and","because","so","therefore","which means"],
-      adjectives: ["quiet","steady","deliberate","courageous","curious","bold","relentless","patient","hopeful","purposeful"],
-      values: ["clarity","focus","effort","consistency","attention","kindness","discipline","curiosity"]
-    };
-
     function mulberry32(a) {
       return function() {
         let t = a += 0x6D2B79F5;
