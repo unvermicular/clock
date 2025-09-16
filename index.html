@@ -1,24 +1,215 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Focus Studio</title>
   <meta name="description" content="A responsive, customizable website featuring an analog and digital clock, a Pomodoro timer, dark/light themes, full theme customization, and endlessly generated motivational messages that change every hour." />
-  <link rel="stylesheet" href="style.css">
-<!--   <style>
-    
-  </style> -->
+  <style>
+    :root {
+      /* Theme variables (overridable at runtime) */
+      --bg: #0b0f15;
+      --text: #e8eef9;
+      --muted: #90A0B7;
+      --card: #121826;
+      --border: #1f2a3a;
+      --shadow: 0 8px 28px rgba(0,0,0,0.25);
+      --accent: #6aa0ff;
+
+      /* Button theming */
+      --btn-bg: var(--accent);
+      --btn-text: #0c1117;
+      --btn-radius: 12px;
+
+      /* Typography */
+      --font-base: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Segoe UI Variable", "Noto Sans", "Liberation Sans", sans-serif;
+      --font-serif: Georgia, "Times New Roman", Times, serif;
+      --font-mono: ui-monospace, Menlo, Monaco, Consolas, "Courier New", monospace;
+      --font-size: 16px;
+
+      /* Components */
+      --ring-bg: conic-gradient(var(--accent) 0%, transparent 0%);
+      --container-max: 1200px;
+    }
+
+    /* Light / Dark baselines (toggle via body[data-theme]) */
+    body[data-theme="light"] {
+      --bg: #fbfcff;
+      --text: #0b1220;
+      --muted: #54607a;
+      --card: #ffffff;
+      --border: #e7eaf1;
+      --shadow: 0 8px 28px rgba(12,17,32,0.08);
+      --accent: #2f6bff;
+      --btn-bg: var(--accent);
+      --btn-text: #ffffff;
+    }
+    body[data-theme="dark"] {
+      --bg: #0b0f15;
+      --text: #e8eef9;
+      --muted: #90A0B7;
+      --card: #121826;
+      --border: #1f2a3a;
+      --shadow: 0 8px 28px rgba(0,0,0,0.25);
+      --accent: #6aa0ff;
+      --btn-bg: var(--accent);
+      --btn-text: #0c1117;
+    }
+
+    /* Reset + base */
+    *,*::before,*::after { box-sizing: border-box; }
+    html,body { height: 100%; }
+    body{
+      margin:0;
+      font-family:var(--font-base);
+      font-size:var(--font-size);
+      line-height:1.45;
+      background:var(--bg);
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      padding: 16px;
+      display:flex;
+      flex-direction:column;
+      gap: 16px;
+    }
+
+    a { color:var(--accent); text-decoration:none; }
+    a:hover { text-decoration:underline; }
+
+    img, canvas, svg { max-width:100%; height:auto; display:block; }
+
+    /* Layout container */
+    .container {
+      width:100%;
+      max-width:var(--container-max);
+      margin:0 auto;
+    }
+
+    /* Top bar */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: linear-gradient(180deg, var(--bg), color-mix(in hsl, var(--bg) 80%, transparent));
+      backdrop-filter: blur(6px);
+      border-bottom: 1px solid var(--border);
+      padding: 8px 0;
+    }
+    .topbar-inner {
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:space-between;
+      padding: 10px 16px;
+      max-width:var(--container-max);
+      margin:0 auto;
+    }
+
+    .brand { display:flex; gap:12px; align-items:center; font-weight:700; }
+    .brand .logo{
+      width:36px;
+      height:36px;
+      border-radius:50%;
+      background: radial-gradient(circle at 30% 30%, var(--accent), color-mix(in hsl, var(--accent) 30%, transparent));
+      box-shadow: 0 0 0 2px color-mix(in hsl, var(--accent) 60%, transparent), 0 6px 20px color-mix(in hsl, var(--accent) 35%, transparent);
+      flex: 0 0 36px;
+    }
+    .brand-title { font-size:1rem; line-height:1; }
+    .brand-sub { color:var(--muted); font-size:.88rem; }
+
+    /* Grid */
+    .grid {
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:16px;
+      margin-top:8px;
+    }
+    @media (min-width:960px) {
+      .grid { grid-template-columns: 1.1fr 0.9fr; grid-auto-rows: 1fr; }
+      #motivation { grid-column: 1 / -1; }
+    }
+
+    /* Card */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+    .card h2 { margin:0 0 8px 0; font-size:1.1rem; }
+    .subtle { color:var(--muted); font-size:.92rem; }
+
+    /* Controls & buttons */
+    .controls { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+    .btn {
+      border: none;
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      padding: 10px 14px;
+      border-radius: var(--btn-radius);
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform .04s ease, filter .15s ease;
+      box-shadow: 0 1px 0 rgba(0,0,0,.06), 0 6px 16px color-mix(in hsl, var(--btn-bg) 25%, transparent);
+    }
+    .btn:hover { filter:brightness(1.05); }
+    .btn:active { transform: translateY(1px) scale(.99); }
+    .btn.secondary { background: color-mix(in hsl, var(--btn-bg) 20%, var(--bg)); color:var(--text); border:1px solid var(--border); box-shadow: none; }
+    .btn.ghost { background:transparent; color:var(--text); border:1px dashed var(--border); box-shadow:none; }
+    .btn.small { padding:6px 10px; font-size:.9rem; }
+    .btn.block { width:100%; display:block; }
+    .btn.warn { --warn:#ff6b6b; background:var(--warn); color:#fff; box-shadow:0 6px 16px color-mix(in hsl,var(--warn)40%,transparent); }
+
+    .segmented { display:inline-flex; border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+    .segmented button { background:transparent; color:var(--text); border:none; padding:8px 12px; cursor:pointer; font-weight:600; font-size:.95rem; }
+    .segmented button.active { background:var(--accent); color:var(--btn-text); }
+
+    /* Clocks layout */
+    .clocks { display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:10px; }
+    .analog-wrap { width:220px; max-width:40%; min-width:160px; aspect-ratio:1/1; display:flex; align-items:center; justify-content:center; }
+    .analog-wrap canvas { width:100%; height:100%; display:block; }
+    .digital { flex:1 1 40%; min-width:180px; display:flex; flex-direction:column; gap:6px; align-items:flex-start; justify-content:center; }
+    .digital-time { font-family:var(--font-mono); font-size:2rem; font-weight:700; letter-spacing:1px; }
+    .digital-date { color:var(--muted); font-size:.95rem; }
+
+    .form-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap:10px; align-items:center; }
+
+    /* Pomodoro */
+    .pomodoro .ring { width:var(--size,220px); height:var(--size,220px); border-radius:999px; display:flex; align-items:center; justify-content:center; margin-bottom:12px; background: conic-gradient(var(--accent) calc(var(--p,0)*1%), transparent 0%); }
+    .readout { text-align:center; }
+    .big { font-size:2.2rem; font-weight:800; font-family:var(--font-mono); }
+    .mode { color:var(--muted); margin-top:6px; }
+
+    .row { display:flex; gap:8px; align-items:center; }
+
+    /* Motivation */
+    .motivation-wrap { display:flex; gap:18px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; }
+    .motivation { font-size:1.05rem; margin:0; color:var(--text); }
+
+    /* Footer */
+    footer { max-width:var(--container-max); margin:0 auto; color:var(--muted); font-size:.95rem; padding:8px 0; text-align:center; }
+
+    /* Accessibility focus */
+    button:focus, a:focus, input:focus, select:focus { outline: 3px solid color-mix(in hsl, var(--accent) 18%, transparent); outline-offset: 3px; }
+
+    /* Small utilities */
+    .pill { background: color-mix(in hsl, var(--card) 85%, transparent); padding:6px 10px; border-radius:999px; border:1px solid var(--border); font-size:.9rem; }
+    .kbd { font-family:var(--font-mono); font-size:.85rem; background:rgba(0,0,0,0.08); padding:.15rem .35rem; border-radius:6px; }
+  </style>
 </head>
 <body data-theme="dark">
-  <header class="topbar">
-    <div class="topbar-inner container">
-      <div class="brand">
+  <header class="topbar" role="banner">
+    <div class="topbar-inner">
+      <div class="brand" aria-hidden="false">
+        <div class="logo" aria-hidden="true"></div>
         <div>
-          <div style="font-size:1rem">Focus Studio</div>
-          <div class="subtle" style="font-size:.85rem">Clocks • Pomodoro • Motivation</div>
+          <div class="brand-title">Focus Studio</div>
+          <div class="brand-sub subtle">Clocks • Pomodoro • Motivation</div>
         </div>
       </div>
+
       <nav class="controls" aria-label="Theme">
         <div class="segmented" role="tablist" aria-label="Theme mode">
           <button id="btnLight" role="tab" aria-selected="false" title="Light mode">Light</button>
@@ -28,21 +219,19 @@
     </div>
   </header>
 
-  <main class="container">
+  <main class="container" role="main">
     <div class="grid">
       <!-- Clocks -->
-      <section id="clocks" class="card">
-        <h2>Clocks</h2>
-        <div class="subtle">Customize an analog and a digital clock. You can also choose a timezone, display seconds, and switch 12/24-hour format.</div>
-        <div class="clocks" style="margin-top:10px">
-          <!-- Analog -->
-          <div>
-            <div class="analog-wrap">
-              <canvas id="analog" aria-label="Analog clock" role="img"></canvas>
-            </div>
+      <section id="clocks" class="card" aria-labelledby="clocks-title">
+        <h2 id="clocks-title">Clocks</h2>
+        <p class="subtle">Customize an analog and a digital clock. Choose timezone, show seconds, and switch 12/24-hour format.</p>
+
+        <div class="clocks" aria-hidden="false">
+          <div class="analog-wrap" aria-hidden="false">
+            <canvas id="analog" aria-label="Analog clock" role="img"></canvas>
           </div>
-          <!-- Digital -->
-          <div class="digital">
+
+          <div class="digital" aria-live="polite">
             <div class="digital-time" id="digitalTime">00:00:00</div>
             <div class="digital-date" id="digitalDate">Monday, Jan 1</div>
           </div>
@@ -122,26 +311,26 @@
       </section>
 
       <!-- Pomodoro -->
-      <section id="pomodoro" class="card">
-        <h2>Pomodoro Timer</h2>
-        <div class="subtle">Stay focused with customizable work, short break, and long break intervals. Optional sound, auto start, and notifications.</div>
+      <section id="pomodoro" class="card" aria-labelledby="pomo-title">
+        <h2 id="pomo-title">Pomodoro Timer</h2>
+        <p class="subtle">Stay focused with customizable work, short break, and long break intervals. Optional sound, auto start, and notifications.</p>
 
         <div class="pomodoro">
-          <div class="ring" id="pomoRing" aria-hidden="true">
+          <div class="ring" id="pomoRing" aria-hidden="true" style="--p:0; --size:220px;">
             <div class="readout">
               <div class="big" id="pomoTime">25:00</div>
               <div class="mode"><span id="pomoMode">Work</span> • <span id="pomoRound">Round 1</span></div>
             </div>
           </div>
 
-          <div class="row">
+          <div class="row" style="margin-bottom:10px;">
             <button class="btn" id="pomoStart">Start</button>
             <button class="btn secondary" id="pomoPause">Pause</button>
             <button class="btn secondary" id="pomoReset">Reset</button>
             <button class="btn ghost" id="pomoSkip">Skip</button>
           </div>
 
-          <div class="row">
+          <div class="row" style="margin-bottom:10px;">
             <span class="pill"><strong>Status:</strong> <span id="pomoStatus">Idle</span></span>
             <span class="pill" title="Keyboard shortcut"><span class="kbd">Space</span> to Start/Pause</span>
           </div>
@@ -175,29 +364,27 @@
               </label>
               <label>Volume
                 <input type="range" id="pVolume" min="0" max="1" step="0.05" value="0.5" />
-              </label>
-              <label>Desktop notifications
-                <button class="btn small secondary" id="pNotify">Enable</button>
-              </label>
+
             </div>
           </details>
         </div>
       </section>
 
       <!-- Motivation -->
-      <section id="motivation" class="card">
-        <h2>Motivation</h2>
+      <section id="motivation" class="card" aria-labelledby="motivation-title">
+        <h2 id="motivation-title">Motivation</h2>
         <div class="motivation-wrap">
-          <div>
+          <div style="flex:1 1 60%;">
             <blockquote class="motivation" id="quoteText">Your story is what you have, what you will always have. It is something to own.</blockquote>
             <div class="subtle" id="quoteMeta" style="margin-top:8px">Updates at the top of every hour. Local time.</div>
-            <div class="row" style="margin-top:12px; justify-content:flex-start">
+            <div class="row" style="margin-top:12px; justify-content:flex-start;">
               <button class="btn small" id="btnShuffle">Shuffle now</button>
               <button class="btn secondary small" id="btnCopy">Copy</button>
               <button class="btn ghost small" id="btnAddQuote">Add your own</button>
             </div>
           </div>
-          <div>
+
+          <div style="flex:1 1 35%;">
             <details>
               <summary>Your custom messages</summary>
               <div id="userQuotesWrap" class="subtle" style="margin-top:8px"></div>
@@ -219,14 +406,16 @@
     </div>
   </main>
 
-  <footer class="container">
+  <footer class="container" role="contentinfo">
     Built for focus and clarity. All features run locally in your browser. No external assets required.
   </footer>
 
   <script>
-    // Utilities
-    const $ = (sel, root=document) => root.querySelector(sel);
-    const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+    "use strict";
+
+    // Tiny helpers
+    const $ = (sel, root = document) => root.querySelector(sel);
+    const $$ = (sel, root = document) => Array.from((root || document).querySelectorAll(sel));
     const clamp = (x, min, max) => Math.min(max, Math.max(min, x));
 
     // Local storage helpers
@@ -242,57 +431,24 @@
       }
     };
 
-    // Theme
+    // Theme keys & defaults
     const THEME_KEY = "tfs_theme_vars";
     const MODE_KEY = "tfs_theme_mode";
 
     const defaultLight = {
-      bg: "#fbfcff",
-      text: "#0b1220",
-      muted: "#54607a",
-      card: "#ffffff",
-      accent: "#2f6bff",
-      btnBg: "#2f6bff",
-      btnText: "#ffffff",
-      btnRadius: 12,
-      font: "system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Segoe UI Variable', 'Noto Sans', 'Liberation Sans', sans-serif",
-      fontSize: 16
+      bg: "#fbfcff", text: "#0b1220", muted: "#54607a", card: "#ffffff",
+      accent: "#2f6bff", btnBg: "#2f6bff", btnText: "#ffffff",
+      btnRadius: 12, font: getComputedStyle(document.documentElement).getPropertyValue("--font-base").trim(), fontSize: 16
     };
     const defaultDark = {
-      bg: "#0b0f15",
-      text: "#e8eef9",
-      muted: "#90A0B7",
-      card: "#121826",
-      accent: "#6aa0ff",
-      btnBg: "#6aa0ff",
-      btnText: "#0c1117",
-      btnRadius: 12,
-      font: "system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Segoe UI Variable', 'Noto Sans', 'Liberation Sans', sans-serif",
-      fontSize: 16
+      bg: "#0b0f15", text: "#e8eef9", muted: "#90A0B7", card: "#121826",
+      accent: "#6aa0ff", btnBg: "#6aa0ff", btnText: "#0c1117",
+      btnRadius: 12, font: getComputedStyle(document.documentElement).getPropertyValue("--font-base").trim(), fontSize: 16
     };
-
-    function setMode(mode) {
-      document.body.setAttribute("data-theme", mode);
-      store.set(MODE_KEY, mode);
-      // Update segmented control
-      $("#btnLight").classList.toggle("active", mode === "light");
-      $("#btnDark").classList.toggle("active", mode === "dark");
-      $("#btnLight").setAttribute("aria-selected", mode === "light");
-      $("#btnDark").setAttribute("aria-selected", mode === "dark");
-      // If no custom vars saved, set inputs to defaults for the mode
-      const vars = store.get(THEME_KEY, null);
-      if (!vars) {
-        const d = mode === "light" ? defaultLight : defaultDark;
-        applyThemeVars(d);
-        reflectThemeInputs(d);
-      } else {
-        applyThemeVars(vars);
-        reflectThemeInputs(vars);
-      }
-    }
 
     function applyThemeVars(v) {
       const root = document.documentElement.style;
+      if (!v) return;
       if (v.bg) root.setProperty("--bg", v.bg);
       if (v.text) root.setProperty("--text", v.text);
       if (v.muted) root.setProperty("--muted", v.muted);
@@ -306,91 +462,117 @@
       ensureButtonContrast();
     }
 
-    function readThemeInputs() {
-      return {
-        accent: $("#varAccent").value,
-        bg: $("#varBg").value,
-        card: $("#varCard").value,
-        text: $("#varText").value,
-        muted: $("#varMuted").value,
-        btnBg: $("#varBtnBg").value,
-        btnText: $("#varBtnText").value,
-        btnRadius: parseInt($("#varBtnRadius").value, 10),
-        font: $("#varFont").value,
-        fontSize: parseInt($("#varFontSize").value, 10)
-      };
-    }
-
-    function reflectThemeInputs(v) {
-      $("#varAccent").value = v.accent;
-      $("#varBg").value = v.bg;
-      $("#varCard").value = v.card;
-      $("#varText").value = v.text;
-      $("#varMuted").value = v.muted;
-      $("#varBtnBg").value = v.btnBg;
-      $("#varBtnText").value = v.btnText;
-      $("#varBtnRadius").value = v.btnRadius;
-      $("#varFont").value = v.font;
-      $("#varFontSize").value = v.fontSize;
-    }
-
-    function hexToRgb(hex) {
-      hex = hex.replace("#", "");
-      if (hex.length === 3) hex = hex.split("").map(c => c + c).join("");
-      const n = parseInt(hex, 16);
-      return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
-    }
-    function relativeLuminance({r,g,b}) {
-      // sRGB to linear
-      const srgb = [r,g,b].map(v => v/255).map(v => v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4));
-      return 0.2126*srgb[0] + 0.7152*srgb[1] + 0.0722*srgb[2];
-    }
     function ensureButtonContrast() {
-      // If contrast between btn-bg and btn-text is too low, auto-pick black/white text
-      const bg = getComputedStyle(document.documentElement).getPropertyValue("--btn-bg").trim();
-      const txt = getComputedStyle(document.documentElement).getPropertyValue("--btn-text").trim();
-      let bgRGB = hexToRgb(bg.startsWith("#") ? bg : "#6aa0ff");
-      let txtRGB = hexToRgb(txt.startsWith("#") ? txt : "#000000");
-      const L1 = Math.max(relativeLuminance(bgRGB), relativeLuminance(txtRGB));
-      const L2 = Math.min(relativeLuminance(bgRGB), relativeLuminance(txtRGB));
-      const contrast = (L1 + 0.05) / (L2 + 0.05);
-      if (contrast < 4.0) {
-        // Choose black or white depending on bg luminance
-        const bgLum = relativeLuminance(bgRGB);
-        const suggested = bgLum > 0.4 ? "#0b0f15" : "#ffffff";
-        document.documentElement.style.setProperty("--btn-text", suggested);
+      // Safely compute contrast and pick readable text for buttons if needed.
+      try {
+        const style = getComputedStyle(document.documentElement);
+        const bg = style.getPropertyValue("--btn-bg").trim() || "#6aa0ff";
+        const txt = style.getPropertyValue("--btn-text").trim() || "#0c1117";
+
+        const hexToRgb = (hex) => {
+          hex = String(hex).trim().replace("#", "");
+          if (hex.length === 3) hex = hex.split("").map(c => c + c).join("");
+          const n = parseInt(hex, 16);
+          return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+        };
+        const relLum = ({r,g,b}) => {
+          const srgb = [r,g,b].map(v => v/255).map(v => v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4));
+          return 0.2126*srgb[0] + 0.7152*srgb[1] + 0.0722*srgb[2];
+        };
+
+        const bgRGB = hexToRgb(bg.startsWith("#") ? bg : "#6aa0ff");
+        const txtRGB = hexToRgb(txt.startsWith("#") ? txt : "#0c1117");
+        const L1 = Math.max(relLum(bgRGB), relLum(txtRGB));
+        const L2 = Math.min(relLum(bgRGB), relLum(txtRGB));
+        const contrast = (L1 + 0.05) / (L2 + 0.05);
+        if (contrast < 4.0) {
+          const bgLum = relLum(bgRGB);
+          const suggested = bgLum > 0.4 ? "#0b0f15" : "#ffffff";
+          document.documentElement.style.setProperty("--btn-text", suggested);
+        }
+      } catch (e) { /* fail silently */ }
+    }
+
+    function setMode(mode) {
+      document.body.setAttribute("data-theme", mode);
+      store.set(MODE_KEY, mode);
+      const btnL = $("#btnLight"), btnD = $("#btnDark");
+      if (btnL) btnL.classList.toggle("active", mode === "light");
+      if (btnD) btnD.classList.toggle("active", mode === "dark");
+      if (btnL) btnL.setAttribute("aria-selected", mode === "light");
+      if (btnD) btnD.setAttribute("aria-selected", mode === "dark");
+
+      const vars = store.get(THEME_KEY, null);
+      if (!vars) {
+        const d = mode === "light" ? defaultLight : defaultDark;
+        applyThemeVars(d);
+      } else {
+        applyThemeVars(vars);
       }
     }
 
-    $("#btnLight").addEventListener("click", () => setMode("light"));
-    $("#btnDark").addEventListener("click", () => setMode("dark"));
+    // Initialize mode
+    setMode(store.get(MODE_KEY, "dark"));
 
-    // Live theme binding
-    ["varAccent","varBg","varCard","varText","varMuted","varBtnBg","varBtnText","varBtnRadius","varFont","varFontSize"]
-      .forEach(id => {
-        const el = $("#"+id);
-        el.addEventListener("input", () => {
-          const v = readThemeInputs();
-          applyThemeVars(v);
+    // Guarded event binder helper
+    const onIf = (sel, ev, fn) => { const el = $(sel); if (el) el.addEventListener(ev, fn); };
+
+    // Theme toggles
+    onIf("#btnLight", "click", () => setMode("light"));
+    onIf("#btnDark", "click", () => setMode("dark"));
+
+    // Safe binding for optional theme inputs (will only attach if elements exist)
+    [
+      "varAccent","varBg","varCard","varText","varMuted","varBtnBg","varBtnText","varBtnRadius","varFont","varFontSize"
+    ].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener("input", () => {
+        // read only the inputs present
+        const read = () => ({
+          accent: (document.getElementById("varAccent")?.value) || getComputedStyle(document.documentElement).getPropertyValue("--accent").trim(),
+          bg: (document.getElementById("varBg")?.value) || getComputedStyle(document.documentElement).getPropertyValue("--bg").trim(),
+          card: (document.getElementById("varCard")?.value) || getComputedStyle(document.documentElement).getPropertyValue("--card").trim(),
+          text: (document.getElementById("varText")?.value) || getComputedStyle(document.documentElement).getPropertyValue("--text").trim(),
+          muted: (document.getElementById("varMuted")?.value) || getComputedStyle(document.documentElement).getPropertyValue("--muted").trim(),
+          btnBg: (document.getElementById("varBtnBg")?.value) || getComputedStyle(document.documentElement).getPropertyValue("--btn-bg").trim(),
+          btnText: (document.getElementById("varBtnText")?.value) || getComputedStyle(document.documentElement).getPropertyValue("--btn-text").trim(),
+          btnRadius: parseInt(document.getElementById("varBtnRadius")?.value || getComputedStyle(document.documentElement).getPropertyValue("--btn-radius").replace("px","") || 12, 10),
+          font: (document.getElementById("varFont")?.value) || getComputedStyle(document.documentElement).getPropertyValue("--font-base").trim(),
+          fontSize: parseInt(document.getElementById("varFontSize")?.value || getComputedStyle(document.documentElement).getPropertyValue("--font-size").replace("px","") || 16, 10)
         });
+        applyThemeVars(read());
       });
+    });
 
-    $("#btnSaveTheme").addEventListener("click", () => {
-      store.set(THEME_KEY, readThemeInputs());
+    // Protected optional buttons (export/import/save/reset) — attach only if present
+    onIf("#btnSaveTheme", "click", () => {
+      const read = () => ({
+        accent: (document.getElementById("varAccent")?.value) || getComputedStyle(document.documentElement).getPropertyValue("--accent").trim(),
+        bg: (document.getElementById("varBg")?.value) || getComputedStyle(document.documentElement).getPropertyValue("--bg").trim(),
+        card: (document.getElementById("varCard")?.value) || getComputedStyle(document.documentElement).getPropertyValue("--card").trim(),
+        text: (document.getElementById("varText")?.value) || getComputedStyle(document.documentElement).getPropertyValue("--text").trim(),
+        muted: (document.getElementById("varMuted")?.value) || getComputedStyle(document.documentElement).getPropertyValue("--muted").trim(),
+        btnBg: (document.getElementById("varBtnBg")?.value) || getComputedStyle(document.documentElement).getPropertyValue("--btn-bg").trim(),
+        btnText: (document.getElementById("varBtnText")?.value) || getComputedStyle(document.documentElement).getPropertyValue("--btn-text").trim(),
+        btnRadius: parseInt(document.getElementById("varBtnRadius")?.value || 12, 10),
+        font: (document.getElementById("varFont")?.value) || getComputedStyle(document.documentElement).getPropertyValue("--font-base").trim(),
+        fontSize: parseInt(document.getElementById("varFontSize")?.value || 16, 10)
+      });
+      store.set(THEME_KEY, read());
       ensureButtonContrast();
       flashStatus("Theme saved");
     });
-    $("#btnResetTheme").addEventListener("click", () => {
+
+    onIf("#btnResetTheme", "click", () => {
       const mode = store.get(MODE_KEY, "dark");
       const d = mode === "light" ? defaultLight : defaultDark;
       applyThemeVars(d);
-      reflectThemeInputs(d);
       store.set(THEME_KEY, d);
       flashStatus("Theme reset");
     });
 
-    // Export/Import settings (theme + clocks + pomodoro + quotes)
-    $("#btnExport").addEventListener("click", () => {
+    onIf("#btnExport", "click", () => {
       const payload = {
         mode: store.get(MODE_KEY, "dark"),
         theme: store.get(THEME_KEY, null),
@@ -409,7 +591,7 @@
       URL.revokeObjectURL(url);
     });
 
-    $("#btnImport").addEventListener("click", async () => {
+    onIf("#btnImport", "click", () => {
       const input = document.createElement("input");
       input.type = "file";
       input.accept = "application/json";
@@ -455,10 +637,9 @@
       setTimeout(() => pill.remove(), 1800);
     }
 
-    // Initial theme mode
-    setMode(store.get(MODE_KEY, "dark"));
-
-    // Clock logic
+    /* ----------------------------
+       Clocks
+       ---------------------------- */
     const CLOCK_KEY = "tfs_clock_settings";
     const clockDefaults = {
       tzSource: "local",
@@ -484,10 +665,9 @@
       reflectClockInputs(merged);
       return merged;
     }
-    function saveClockSettings() {
-      store.set(CLOCK_KEY, clockSettings);
-    }
+    function saveClockSettings() { store.set(CLOCK_KEY, clockSettings); }
     function reflectClockInputs(v) {
+      if (!v) return;
       $("#clockTzSource").value = v.tzSource;
       $("#clockTzOffset").value = v.tzOffset;
       $("#digitalFormat").value = v.digitalFormat;
@@ -503,12 +683,14 @@
       $("#analogMinute").value = v.analogMinute;
       $("#analogSecond").value = v.analogSecond;
     }
-    // Bind inputs
+
     [
       "clockTzSource","clockTzOffset","digitalFormat","digitalSeconds","digitalBlink","digitalShowDate",
       "analogSeconds","analogSmooth","analogNumbers","analogFace","analogTicks","analogHour","analogMinute","analogSecond"
     ].forEach(id => {
-      $("#"+id).addEventListener("input", () => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener("input", () => {
         const v = clockSettings;
         v.tzSource = $("#clockTzSource").value;
         v.tzOffset = parseFloat($("#clockTzOffset").value);
@@ -558,159 +740,157 @@
     function tickDigital() {
       const now = getNowWithOffset();
       blinkOn = !blinkOn;
-      $("#digitalTime").textContent = formatDigital(now);
-      $("#digitalDate").textContent = clockSettings.digitalShowDate ? formatDateLine(now) : "";
+      const elTime = $("#digitalTime"), elDate = $("#digitalDate");
+      if (elTime) elTime.textContent = formatDigital(now);
+      if (elDate) elDate.textContent = clockSettings.digitalShowDate ? formatDateLine(now) : "";
     }
     setInterval(tickDigital, 500);
     tickDigital();
 
-    // Analog clock
+    /* ----------------------------
+       Analog canvas drawing
+       ---------------------------- */
     const analogCanvas = $("#analog");
-    const ctx = analogCanvas.getContext("2d");
+    const ctx = analogCanvas ? analogCanvas.getContext("2d") : null;
 
-    function resizeAnalog() {
-      const rect = analogCanvas.getBoundingClientRect();
-      const dpr = Math.max(1, window.devicePixelRatio || 1);
-      analogCanvas.width = Math.floor(rect.width * dpr);
-      analogCanvas.height = Math.floor(rect.height * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    }
-    new ResizeObserver(resizeAnalog).observe(analogCanvas);
-    resizeAnalog();
+    if (analogCanvas && ctx) {
+      function resizeAnalog() {
+        const rect = analogCanvas.getBoundingClientRect();
+        const dpr = Math.max(1, window.devicePixelRatio || 1);
+        analogCanvas.width = Math.floor(rect.width * dpr);
+        analogCanvas.height = Math.floor(rect.height * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+      new ResizeObserver(resizeAnalog).observe(analogCanvas);
+      resizeAnalog();
 
-    function drawAnalog() {
-      const rect = analogCanvas.getBoundingClientRect();
-      const w = rect.width, h = rect.height;
-      ctx.clearRect(0, 0, w, h);
+      function drawAnalog() {
+        const rect = analogCanvas.getBoundingClientRect();
+        const w = rect.width, h = rect.height;
+        ctx.clearRect(0, 0, w, h);
 
-      const r = Math.min(w, h) / 2 - 8;
-      const cx = w / 2, cy = h / 2;
+        const r = Math.min(w, h) / 2 - 8;
+        const cx = w / 2, cy = h / 2;
 
-      // Face
-      ctx.save();
-      // Face background
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, Math.PI * 2);
-      ctx.fillStyle = clockSettings.analogFace;
-      ctx.fill();
-      // Bezel
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue("--border").trim() || "#2a2a2a";
-      ctx.stroke();
-
-      // Ticks
-      for (let i = 0; i < 60; i++) {
-        const angle = (Math.PI * 2) * (i / 60);
-        const outer = r - 6;
-        const inner = i % 5 === 0 ? outer - 10 : outer - 6;
+        ctx.save();
+        // Face
         ctx.beginPath();
-        ctx.lineWidth = i % 5 === 0 ? 3 : 1.5;
-        ctx.strokeStyle = clockSettings.analogTicks;
-        const sx = cx + Math.cos(angle) * inner;
-        const sy = cy + Math.sin(angle) * inner;
-        const ex = cx + Math.cos(angle) * outer;
-        const ey = cy + Math.sin(angle) * outer;
-        ctx.moveTo(sx, sy);
-        ctx.lineTo(ex, ey);
-        ctx.stroke();
-      }
-
-      // Numbers
-      if (clockSettings.analogNumbers) {
-        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--text").trim();
-        ctx.font = "600 16px " + getComputedStyle(document.documentElement).getPropertyValue("--font-base").trim();
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        for (let n = 1; n <= 12; n++) {
-          const angle = (Math.PI * 2) * (n / 12) - Math.PI/2;
-          const nr = r - 28;
-          const nx = cx + Math.cos(angle) * nr;
-          const ny = cy + Math.sin(angle) * nr;
-          ctx.fillText(String(n), nx, ny);
-        }
-      }
-
-      // Time
-      const now = getNowWithOffset();
-      const ms = now.getMilliseconds();
-      const secBase = now.getSeconds() + (clockSettings.analogSmooth ? ms/1000 : 0);
-      const minBase = now.getMinutes() + secBase/60;
-      const hourBase = (now.getHours() % 12) + minBase/60;
-
-      const hourAngle = (Math.PI * 2) * (hourBase / 12) - Math.PI/2;
-      const minAngle = (Math.PI * 2) * (minBase / 60) - Math.PI/2;
-      const secAngle = (Math.PI * 2) * (secBase / 60) - Math.PI/2;
-
-      // Hour hand
-      ctx.lineCap = "round";
-      ctx.strokeStyle = clockSettings.analogHour;
-      ctx.lineWidth = 5.5;
-      ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      ctx.lineTo(cx + Math.cos(hourAngle) * (r * 0.52), cy + Math.sin(hourAngle) * (r * 0.52));
-      ctx.stroke();
-
-      // Minute hand
-      ctx.strokeStyle = clockSettings.analogMinute;
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      ctx.lineTo(cx + Math.cos(minAngle) * (r * 0.72), cy + Math.sin(minAngle) * (r * 0.72));
-      ctx.stroke();
-
-      // Second hand
-      if (clockSettings.analogSeconds) {
-        ctx.strokeStyle = clockSettings.analogSecond;
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fillStyle = clockSettings.analogFace;
+        ctx.fill();
+        // Bezel
         ctx.lineWidth = 2;
+        ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue("--border").trim() || "#2a2a2a";
+        ctx.stroke();
+
+        // Ticks
+        for (let i = 0; i < 60; i++) {
+          const angle = (Math.PI * 2) * (i / 60);
+          const outer = r - 6;
+          const inner = i % 5 === 0 ? outer - 10 : outer - 6;
+          ctx.beginPath();
+          ctx.lineWidth = i % 5 === 0 ? 3 : 1.5;
+          ctx.strokeStyle = clockSettings.analogTicks;
+          const sx = cx + Math.cos(angle) * inner;
+          const sy = cy + Math.sin(angle) * inner;
+          const ex = cx + Math.cos(angle) * outer;
+          const ey = cy + Math.sin(angle) * outer;
+          ctx.moveTo(sx, sy);
+          ctx.lineTo(ex, ey);
+          ctx.stroke();
+        }
+
+        // Numbers
+        if (clockSettings.analogNumbers) {
+          ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--text").trim();
+          ctx.font = "600 16px " + getComputedStyle(document.documentElement).getPropertyValue("--font-base").trim();
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          for (let n = 1; n <= 12; n++) {
+            const angle = (Math.PI * 2) * (n / 12) - Math.PI/2;
+            const nr = r - 28;
+            const nx = cx + Math.cos(angle) * nr;
+            const ny = cy + Math.sin(angle) * nr;
+            ctx.fillText(String(n), nx, ny);
+          }
+        }
+
+        // Time math
+        const now = getNowWithOffset();
+        const ms = now.getMilliseconds();
+        const secBase = now.getSeconds() + (clockSettings.analogSmooth ? ms/1000 : 0);
+        const minBase = now.getMinutes() + secBase/60;
+        const hourBase = (now.getHours() % 12) + minBase/60;
+
+        const hourAngle = (Math.PI * 2) * (hourBase / 12) - Math.PI/2;
+        const minAngle = (Math.PI * 2) * (minBase / 60) - Math.PI/2;
+        const secAngle = (Math.PI * 2) * (secBase / 60) - Math.PI/2;
+
+        // Hour
+        ctx.lineCap = "round";
+        ctx.strokeStyle = clockSettings.analogHour;
+        ctx.lineWidth = 5.5;
         ctx.beginPath();
         ctx.moveTo(cx, cy);
-        ctx.lineTo(cx + Math.cos(secAngle) * (r * 0.80), cy + Math.sin(secAngle) * (r * 0.80));
+        ctx.lineTo(cx + Math.cos(hourAngle) * (r * 0.52), cy + Math.sin(hourAngle) * (r * 0.52));
         ctx.stroke();
-        // Tail
+
+        // Minute
+        ctx.strokeStyle = clockSettings.analogMinute;
+        ctx.lineWidth = 4;
         ctx.beginPath();
         ctx.moveTo(cx, cy);
-        ctx.lineTo(cx - Math.cos(secAngle) * (r * 0.18), cy - Math.sin(secAngle) * (r * 0.18));
+        ctx.lineTo(cx + Math.cos(minAngle) * (r * 0.72), cy + Math.sin(minAngle) * (r * 0.72));
         ctx.stroke();
+
+        // Second
+        if (clockSettings.analogSeconds) {
+          ctx.strokeStyle = clockSettings.analogSecond;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(cx + Math.cos(secAngle) * (r * 0.80), cy + Math.sin(secAngle) * (r * 0.80));
+          ctx.stroke();
+          // tail
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(cx - Math.cos(secAngle) * (r * 0.18), cy - Math.sin(secAngle) * (r * 0.18));
+          ctx.stroke();
+        }
+
+        // hub
+        ctx.beginPath();
+        ctx.arc(cx, cy, 4.5, 0, Math.PI * 2);
+        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim();
+        ctx.fill();
+
+        ctx.restore();
+        requestAnimationFrame(drawAnalog);
       }
-
-      // Center hub
-      ctx.beginPath();
-      ctx.arc(cx, cy, 4.5, 0, Math.PI * 2);
-      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim();
-      ctx.fill();
-
-      ctx.restore();
       requestAnimationFrame(drawAnalog);
     }
-    requestAnimationFrame(drawAnalog);
 
-    // Pomodoro
+    /* ----------------------------
+       Pomodoro
+       ---------------------------- */
     const POMO_KEY = "tfs_pomodoro_settings";
-    const pomoDefaults = {
-      work: 25*60,
-      short: 5*60,
-      long: 15*60,
-      rounds: 4,
-      auto: true,
-      sound: true,
-      volume: 0.5
-    };
+    const pomoDefaults = { work:25*60, short:5*60, long:15*60, rounds:4, auto:true, sound:true, volume:0.5 };
     let pomoSettings = {...pomoDefaults, ...store.get(POMO_KEY, {})};
+
     function loadPomodoroSettings() {
       pomoSettings = {...pomoDefaults, ...store.get(POMO_KEY, {})};
-      $("#pWork").value = Math.round(pomoSettings.work/60);
-      $("#pShort").value = Math.round(pomoSettings.short/60);
-      $("#pLong").value = Math.round(pomoSettings.long/60);
-      $("#pRounds").value = pomoSettings.rounds;
-      $("#pAuto").value = String(pomoSettings.auto);
-      $("#pSound").value = String(pomoSettings.sound);
-      $("#pVolume").value = String(pomoSettings.volume);
+      if ($("#pWork")) $("#pWork").value = Math.round(pomoSettings.work/60);
+      if ($("#pShort")) $("#pShort").value = Math.round(pomoSettings.short/60);
+      if ($("#pLong")) $("#pLong").value = Math.round(pomoSettings.long/60);
+      if ($("#pRounds")) $("#pRounds").value = pomoSettings.rounds;
+      if ($("#pAuto")) $("#pAuto").value = String(pomoSettings.auto);
+      if ($("#pSound")) $("#pSound").value = String(pomoSettings.sound);
+      if ($("#pVolume")) $("#pVolume").value = String(pomoSettings.volume);
       return pomoSettings;
     }
     loadPomodoroSettings();
 
-    // Pomodoro state
-    let pomoMode = "work"; // "work" | "short" | "long"
+    let pomoMode = "work";
     let pomoRound = 1;
     let pomoTotal = pomoSettings.work;
     let pomoRemaining = pomoTotal;
@@ -726,16 +906,13 @@
     }
 
     function updatePomoUI() {
-      $("#pomoMode").textContent = ({
-        work: "Work",
-        short: "Short Break",
-        long: "Long Break"
-      })[pomoMode];
-      $("#pomoRound").textContent = `Round ${pomoRound}`;
-      $("#pomoTime").textContent = formatSeconds(pomoRemaining);
-      $("#pomoStatus").textContent = pomoRunning ? "Running" : "Paused";
-      const progress = 1 - (pomoRemaining / pomoTotal);
-      $("#pomoRing").style.setProperty("--p", (progress * 100).toFixed(2));
+      const modeEl = $("#pomoMode"), roundEl = $("#pomoRound"), timeEl = $("#pomoTime"), statusEl = $("#pomoStatus"), ring = $("#pomoRing");
+      if (modeEl) modeEl.textContent = ({ work:"Work", short:"Short Break", long:"Long Break" })[pomoMode];
+      if (roundEl) roundEl.textContent = `Round ${pomoRound}`;
+      if (timeEl) timeEl.textContent = formatSeconds(pomoRemaining);
+      if (statusEl) statusEl.textContent = pomoRunning ? "Running" : "Paused";
+      const progress = 1 - (pomoRemaining / Math.max(1, pomoTotal));
+      if (ring) ring.style.setProperty("--p", (progress * 100).toFixed(2));
     }
 
     function formatSeconds(s) {
@@ -748,27 +925,23 @@
       if (pomoRunning) return;
       pomoRunning = true;
       lastTick = performance.now();
-      $("#pomoStatus").textContent = "Running";
+      if ($("#pomoStatus")) $("#pomoStatus").textContent = "Running";
       pomoTimer = requestAnimationFrame(stepPomo);
     }
 
     function pausePomo() {
       if (!pomoRunning) return;
       pomoRunning = false;
-      $("#pomoStatus").textContent = "Paused";
+      if ($("#pomoStatus")) $("#pomoStatus").textContent = "Paused";
       if (pomoTimer) cancelAnimationFrame(pomoTimer);
     }
 
     function resetPomo() {
-      const wasWork = pomoMode === "work";
       setPomoMode(pomoMode);
-      if (wasWork) pomoRound = Math.max(1, pomoRound);
       updatePomoUI();
     }
 
-    function skipPomo() {
-      completeSession();
-    }
+    function skipPomo() { completeSession(); }
 
     function stepPomo(ts) {
       const dt = (ts - lastTick) / 1000;
@@ -789,7 +962,6 @@
     function completeSession() {
       pausePomo();
       signalEnd();
-      // Advance cycle
       if (pomoMode === "work") {
         if (pomoRound % pomoSettings.rounds === 0) {
           setPomoMode("long");
@@ -797,108 +969,77 @@
           setPomoMode("short");
         }
       } else {
-        // from break to next work
         pomoRound += 1;
         setPomoMode("work");
       }
       updatePomoUI();
-      if (pomoSettings.auto) {
-        setTimeout(startPomo, 400);
-      }
+      if (pomoSettings.auto) setTimeout(startPomo, 400);
     }
 
     function signalEnd() {
-      // Sound via Web Audio API
-      if (pomoSettings.sound) {
-        beepPattern(pomoSettings.volume);
-      }
-      // Desktop notification
-      if (Notification && Notification.permission === "granted") {
-        const title = pomoMode === "work" ? "Break time!" : "Back to work!";
-        const body = pomoMode === "work"
-          ? "Great job. Take a breather."
-          : "Let’s focus for the next session.";
-        try {
+      if (pomoSettings.sound) beepPattern(pomoSettings.volume);
+      try {
+        if ("Notification" in window && Notification.permission === "granted") {
+          const title = pomoMode === "work" ? "Break time!" : "Back to work!";
+          const body = pomoMode === "work" ? "Great job. Take a breather." : "Let’s focus for the next session.";
           new Notification(title, { body });
-        } catch {}
-      }
+        }
+      } catch {}
     }
 
     function beepPattern(vol=0.5) {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const play = (t, freq, dur) => {
-        const o = ctx.createOscillator();
-        const g = ctx.createGain();
-        o.type = "sine";
-        o.frequency.value = freq;
-        o.connect(g);
-        g.connect(ctx.destination);
-        g.gain.value = vol;
-        o.start(ctx.currentTime + t);
-        o.stop(ctx.currentTime + t + dur);
-      };
-      play(0.00, 880, 0.12);
-      play(0.17, 660, 0.10);
-      play(0.30, 990, 0.14);
-      setTimeout(() => ctx.close(), 1200);
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const play = (t, freq, dur) => {
+          const o = ctx.createOscillator();
+          const g = ctx.createGain();
+          o.type = "sine";
+          o.frequency.value = freq;
+          o.connect(g);
+          g.connect(ctx.destination);
+          g.gain.value = vol;
+          o.start(ctx.currentTime + t);
+          o.stop(ctx.currentTime + t + dur);
+        };
+        play(0.00, 880, 0.12);
+        play(0.17, 660, 0.10);
+        play(0.30, 990, 0.14);
+        setTimeout(() => ctx.close(), 1200);
+      } catch {}
     }
 
-    // Bind Pomodoro controls
-    $("#pomoStart").addEventListener("click", startPomo);
-    $("#pomoPause").addEventListener("click", pausePomo);
-    $("#pomoReset").addEventListener("click", resetPomo);
-    $("#pomoSkip").addEventListener("click", skipPomo);
-    // Keyboard: Space toggles start/pause
+    // Controls binding (guarded)
+    onIf("#pomoStart", "click", startPomo);
+    onIf("#pomoPause", "click", pausePomo);
+    onIf("#pomoReset", "click", resetPomo);
+    onIf("#pomoSkip", "click", skipPomo);
+
+    // Keyboard Space toggles Start/Pause
     window.addEventListener("keydown", (e) => {
       if (e.code === "Space" && !e.repeat) {
+        // avoid toggling if typing in an input
+        const tag = document.activeElement?.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA") return;
         e.preventDefault();
         if (pomoRunning) pausePomo(); else startPomo();
       }
     });
-    // Settings
-    $("#pWork").addEventListener("input", () => {
-      pomoSettings.work = clamp(parseInt($("#pWork").value, 10)*60, 60, 60*180);
-      store.set(POMO_KEY, pomoSettings); if (pomoMode==="work") resetPomo();
-    });
-    $("#pShort").addEventListener("input", () => {
-      pomoSettings.short = clamp(parseInt($("#pShort").value, 10)*60, 60, 60*60);
-      store.set(POMO_KEY, pomoSettings); if (pomoMode==="short") resetPomo();
-    });
-    $("#pLong").addEventListener("input", () => {
-      pomoSettings.long = clamp(parseInt($("#pLong").value, 10)*60, 60, 60*120);
-      store.set(POMO_KEY, pomoSettings); if (pomoMode==="long") resetPomo();
-    });
-    $("#pRounds").addEventListener("input", () => {
-      pomoSettings.rounds = clamp(parseInt($("#pRounds").value, 10), 1, 12);
-      store.set(POMO_KEY, pomoSettings);
-    });
-    $("#pAuto").addEventListener("input", () => {
-      pomoSettings.auto = $("#pAuto").value === "true";
-      store.set(POMO_KEY, pomoSettings);
-    });
-    $("#pSound").addEventListener("input", () => {
-      pomoSettings.sound = $("#pSound").value === "true";
-      store.set(POMO_KEY, pomoSettings);
-    });
-    $("#pVolume").addEventListener("input", () => {
-      pomoSettings.volume = parseFloat($("#pVolume").value);
-      store.set(POMO_KEY, pomoSettings);
-    });
-    $("#pNotify").addEventListener("click", async () => {
-      try {
-        if (!("Notification" in window)) {
-          flashStatus("Notifications not supported");
-          return;
-        }
-        const perm = await Notification.requestPermission();
-        flashStatus(perm === "granted" ? "Notifications enabled" : "Notifications blocked");
-      } catch {
-        flashStatus("Notification request failed");
-      }
-    });
+
+    // Pomodoro settings inputs (guarded)
+    const bindIf = (sel, ev, fn) => { const el = $(sel); if (el) el.addEventListener(ev, fn); };
+    bindIf("#pWork", "input", () => { pomoSettings.work = clamp(parseInt($("#pWork").value,10)*60, 60, 60*180); store.set(POMO_KEY, pomoSettings); if (pomoMode==="work") resetPomo(); });
+    bindIf("#pShort", "input", () => { pomoSettings.short = clamp(parseInt($("#pShort").value,10)*60, 60, 60*60); store.set(POMO_KEY, pomoSettings); if (pomoMode==="short") resetPomo(); });
+    bindIf("#pLong", "input", () => { pomoSettings.long = clamp(parseInt($("#pLong").value,10)*60, 60, 60*120); store.set(POMO_KEY, pomoSettings); if (pomoMode==="long") resetPomo(); });
+    bindIf("#pRounds", "input", () => { pomoSettings.rounds = clamp(parseInt($("#pRounds").value,10), 1, 12); store.set(POMO_KEY, pomoSettings); });
+    bindIf("#pAuto", "input", () => { pomoSettings.auto = $("#pAuto").value === "true"; store.set(POMO_KEY, pomoSettings); });
+    bindIf("#pSound", "input", () => { pomoSettings.sound = $("#pSound").value === "true"; store.set(POMO_KEY, pomoSettings); });
+    bindIf("#pVolume", "input", () => { pomoSettings.volume = parseFloat($("#pVolume").value); store.set(POMO_KEY, pomoSettings); });
+
     updatePomoUI();
 
-    // Motivational Texts (procedural, unlimited variations)
+    /* ----------------------------
+       Motivational texts
+       ---------------------------- */
     const QUOTES_KEY = "tfs_user_quotes";
     const baseQuotes = [
       "Your story is what you have, what you will always have. It is something to own.",
@@ -912,40 +1053,15 @@
       "Tiny improvements compound into remarkable results.",
       "Your pace is valid. Keep going."
     ];
-    // Procedural components to generate unlimited combinations
     const fragments = {
-      openers: [
-        "Your story", "Your potential", "Your journey", "Your effort", "Your growth",
-        "This moment", "Today", "Right now", "The next step", "The choice you make"
-      ],
-      verbs: [
-        "defines", "shapes", "sets", "builds", "unlocks", "guides", "elevates", "anchors"
-      ],
-      nouns: [
-        "your future", "your path", "your momentum", "your results", "your craft",
-        "your confidence", "your skill", "your resilience"
-      ],
-      prompts: [
-        "own it", "lean in", "keep going", "trust the process", "show up",
-        "start small", "begin again", "focus on what matters", "embrace the effort",
-        "take the next step"
-      ],
-      closers: [
-        "One hour at a time.", "One step at a time.", "Make it count.",
-        "You’ve got this.", "Be proudly consistent.", "Progress over perfection.",
-        "Let the work speak.", "Little by little becomes a lot."
-      ],
-      bridges: [
-        "and", "because", "so", "therefore", "which means"
-      ],
-      adjectives: [
-        "quiet", "steady", "deliberate", "courageous", "curious", "bold",
-        "relentless", "patient", "hopeful", "purposeful"
-      ],
-      values: [
-        "clarity", "focus", "effort", "consistency", "attention",
-        "kindness", "discipline", "curiosity"
-      ]
+      openers: ["Your story","Your potential","Your journey","Your effort","Your growth","This moment","Today","Right now","The next step","The choice you make"],
+      verbs: ["defines","shapes","sets","builds","unlocks","guides","elevates","anchors"],
+      nouns: ["your future","your path","your momentum","your results","your craft","your confidence","your skill","your resilience"],
+      prompts: ["own it","lean in","keep going","trust the process","show up","start small","begin again","focus on what matters","embrace the effort","take the next step"],
+      closers: ["One hour at a time.","One step at a time.","Make it count.","You’ve got this.","Be proudly consistent.","Progress over perfection.","Let the work speak.","Little by little becomes a lot."],
+      bridges: ["and","because","so","therefore","which means"],
+      adjectives: ["quiet","steady","deliberate","courageous","curious","bold","relentless","patient","hopeful","purposeful"],
+      values: ["clarity","focus","effort","consistency","attention","kindness","discipline","curiosity"]
     };
 
     function mulberry32(a) {
@@ -956,21 +1072,12 @@
         return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
       }
     }
-    function seededPick(rng, arr) {
-      return arr[Math.floor(rng() * arr.length)];
-    }
+    function seededPick(rng, arr) { return arr[Math.floor(rng() * arr.length)]; }
     function generateQuote(seed) {
       const rng = mulberry32(seed);
-      // 30% chance to use a curated base quote
-      if (rng() < 0.30) {
-        return seededPick(rng, baseQuotes);
-      }
-      // 15% chance to use user quotes if any
+      if (rng() < 0.30) return seededPick(rng, baseQuotes);
       const u = store.get(QUOTES_KEY, []);
-      if (u.length && rng() < 0.15) {
-        return seededPick(rng, u);
-      }
-      // Template-driven generation
+      if (u.length && rng() < 0.15) return seededPick(rng, u);
       const A = seededPick(rng, fragments.openers);
       const B = seededPick(rng, fragments.verbs);
       const C = seededPick(rng, fragments.nouns);
@@ -979,7 +1086,6 @@
       const F = seededPick(rng, fragments.values);
       const P = seededPick(rng, fragments.prompts);
       const Z = seededPick(rng, fragments.closers);
-
       const templates = [
         `${A} ${B} ${C}—${P}. ${Z}`,
         `${A} is ${E} work. Choose ${F}, ${P}. ${Z}`,
@@ -992,7 +1098,6 @@
     }
     function currentHourSeed() {
       const now = new Date();
-      // Seed stable for the local hour
       return now.getFullYear()*1e6 + (now.getMonth()+1)*1e4 + now.getDate()*1e2 + now.getHours();
     }
     function updateQuoteByHour(force=false) {
@@ -1000,22 +1105,19 @@
       const last = updateQuoteByHour._lastSeed;
       if (force || last !== hourSeed) {
         const q = generateQuote(hourSeed);
-        $("#quoteText").textContent = q;
+        const el = $("#quoteText");
+        if (el) el.textContent = q;
         updateQuoteByHour._lastSeed = hourSeed;
       }
     }
     updateQuoteByHour(true);
-    // Check every minute to roll over at top of hour
     setInterval(() => updateQuoteByHour(false), 60*1000);
 
-    // Quotes UI
     function renderUserQuotes() {
       const list = store.get(QUOTES_KEY, []);
       const wrap = $("#userQuotesWrap");
-      if (!list.length) {
-        wrap.innerHTML = "<em>No custom messages yet.</em>";
-        return;
-      }
+      if (!wrap) return;
+      if (!list.length) { wrap.innerHTML = "<em>No custom messages yet.</em>"; return; }
       wrap.innerHTML = "";
       list.forEach((q, i) => {
         const row = document.createElement("div");
@@ -1044,71 +1146,70 @@
     }
     renderUserQuotes();
 
-    $("#btnShuffle").addEventListener("click", () => {
-      // Shuffle uses a random seed so user can explore
+    onIf("#btnShuffle", "click", () => {
       const seed = Math.floor(Math.random()*1e9);
-      $("#quoteText").textContent = generateQuote(seed);
+      const el = $("#quoteText");
+      if (el) el.textContent = generateQuote(seed);
     });
-    $("#btnCopy").addEventListener("click", async () => {
+
+    onIf("#btnCopy", "click", async () => {
       try {
         await navigator.clipboard.writeText($("#quoteText").textContent.trim());
         flashStatus("Copied to clipboard");
-      } catch {
-        flashStatus("Copy failed");
-      }
+      } catch { flashStatus("Copy failed"); }
     });
-    $("#btnAddQuote").addEventListener("click", () => {
+
+    onIf("#btnAddQuote", "click", () => {
       const details = $("#motivation details");
-      details.open = true;
-      $("#newQuote").focus();
+      if (details) details.open = true;
+      const input = $("#newQuote");
+      if (input) input.focus();
     });
-    $("#saveQuote").addEventListener("click", () => {
-      const val = $("#newQuote").value.trim();
+
+    onIf("#saveQuote", "click", () => {
+      const inp = $("#newQuote");
+      if (!inp) return;
+      const val = inp.value.trim();
       if (!val) return;
       const arr = store.get(QUOTES_KEY, []);
       arr.push(val);
       store.set(QUOTES_KEY, arr);
-      $("#newQuote").value = "";
+      inp.value = "";
       renderUserQuotes();
       flashStatus("Saved");
     });
-    $("#clearQuotes").addEventListener("click", () => {
-      if (confirm("Clear all your custom messages?")) {
-        store.set(QUOTES_KEY, []);
-        renderUserQuotes();
-        flashStatus("Cleared");
-      }
+
+    onIf("#clearQuotes", "click", () => {
+      if (!confirm("Clear all your custom messages?")) return;
+      store.set(QUOTES_KEY, []);
+      renderUserQuotes();
+      flashStatus("Cleared");
     });
 
-    // Enhance accessibility: announce time every minute (optional)
-    // Commented out by default; uncomment for screen-reader periodic updates.
-    // setInterval(() => { $("#digitalTime").setAttribute("aria-live", "polite"); }, 60*1000);
-
-    // On load, ensure UI reflects storage
+    // small ui init helpers
     function initOnLoad() {
-      // Theme already initialized
-      // Clocks reflect settings continually via intervals/RAF
-
       // Ensure date visibility toggles the element spacing
       const dateEl = $("#digitalDate");
-      const observer = new MutationObserver(() => {
-        dateEl.style.display = clockSettings.digitalShowDate ? "block" : "none";
-      });
-      observer.observe(dateEl, { childList: true, characterData: true, subtree: true });
-
-      // Ensure analog canvas starts drawing on first frame (already done)
+      if (dateEl) {
+        const observer = new MutationObserver(() => {
+          dateEl.style.display = clockSettings.digitalShowDate ? "block" : "none";
+        });
+        observer.observe(dateEl, { childList: true, characterData: true, subtree: true });
+      }
     }
     initOnLoad();
 
-    // Resize ring size slightly on small screens
+    // adapt ring size on resize
     function adaptRingSize() {
       const ring = $("#pomoRing");
+      if (!ring) return;
       const w = window.innerWidth;
-      const size = w < 420 ? 200 : (w < 360 ? 180 : 220);
+      const size = w < 360 ? 180 : (w < 420 ? 200 : 220);
       ring.style.setProperty("--size", size + "px");
     }
     window.addEventListener("resize", adaptRingSize);
     adaptRingSize();
+
   </script>
 </body>
 </html>
