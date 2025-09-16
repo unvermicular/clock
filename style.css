@@ -1,0 +1,245 @@
+:root {
+  /* Theme variables (overridable at runtime) */
+  --bg: #0b0f15;
+  --text: #e8eef9;
+  --muted: #90A0B7;
+  --card: #121826;
+  --border: #1f2a3a;
+  --shadow: 0 8px 28px rgba(0,0,0,0.25);
+  --accent: #6aa0ff;
+
+  /* Button theming */
+  --btn-bg: var(--accent);
+  --btn-text: #0c1117;
+  --btn-radius: 12px;
+
+  /* Typography */
+  --font-base: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Segoe UI Variable", "Noto Sans", "Liberation Sans", sans-serif;
+  --font-serif: Georgia, "Times New Roman", Times, serif;
+  --font-mono: ui-monospace, Menlo, Monaco, Consolas, "Courier New", monospace;
+  --font-size: 16px;
+
+  /* Components */
+  --ring-bg: conic-gradient(var(--accent) 0%, transparent 0%);
+}
+
+/* Light baseline (applied when [data-theme="light"]) */
+body[data-theme="light"] {
+  --bg: #fbfcff;
+  --text: #0b1220;
+  --muted: #54607a;
+  --card: #ffffff;
+  --border: #e7eaf1;
+  --shadow: 0 8px 28px rgba(12,17,32,0.08);
+  --accent: #2f6bff;
+
+  --btn-bg: var(--accent);
+  --btn-text: #ffffff;
+}
+
+/* Dark baseline (applied when [data-theme="dark"]) */
+body[data-theme="dark"] {
+  --bg: #0b0f15;
+  --text: #e8eef9;
+  --muted: #90A0B7;
+  --card: #121826;
+  --border: #1f2a3a;
+  --shadow: 0 8px 28px rgba(0,0,0,0.25);
+  --accent: #6aa0ff;
+
+  --btn-bg: var(--accent);
+  --btn-text: #0c1117;
+}
+
+/* Global layout */
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-base);
+  font-size: var(--font-size);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+img,
+canvas,
+svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* Top bar */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: linear-gradient(180deg, var(--bg), color-mix(in hsl, var(--bg) 80%, transparent));
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 700;
+  letter-spacing: .2px;
+}
+
+.brand .logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, var(--accent), color-mix(in hsl, var(--accent) 30%, transparent));
+  box-shadow: 0 0 0 2px color-mix(in hsl, var(--accent) 60%, transparent), 0 4px 16px color-mix(in hsl, var(--accent) 40%, transparent);
+}
+
+/* Grid */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+@media (min-width: 960px) {
+  .grid {
+    grid-template-columns: 1.1fr 0.9fr;
+    grid-auto-rows: 1fr;
+  }
+
+  #motivation {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Card */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 16px;
+}
+
+.card h2 {
+  margin: 0 0 8px 0;
+  font-size: 1.1rem;
+}
+
+.subtle {
+  color: var(--muted);
+  font-size: .9rem;
+}
+
+/* Controls */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn {
+  border: none;
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  padding: 10px 14px;
+  border-radius: var(--btn-radius);
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform .04s ease, filter .15s ease;
+  box-shadow: 0 1px 0 rgba(0,0,0,.06), 0 6px 16px color-mix(in hsl, var(--btn-bg) 25%, transparent);
+}
+
+.btn:hover {
+  filter: brightness(1.05);
+}
+
+.btn:active {
+  transform: translateY(1px) scale(.99);
+}
+
+.btn.secondary {
+  background: color-mix(in hsl, var(--btn-bg) 20%, var(--bg));
+  color: var(--text);
+  box-shadow: 0 1px 0 rgba(0,0,0,.04);
+  border: 1px solid var(--border);
+}
+
+.btn.ghost {
+  background: transparent;
+  color: var(--text);
+  border: 1px dashed var(--border);
+  box-shadow: none;
+}
+
+.btn.small {
+  padding: 6px 10px;
+  font-size: .9rem;
+}
+
+.btn.block {
+  width: 100%;
+}
+
+.btn.warn {
+  --warn: #ff6b6b;
+  background: var(--warn);
+  color: white;
+  box-shadow: 0 6px 16px color-mix(in hsl, var(--warn) 40%, transparent);
+}
+
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.segmented button {
+  background: transparent;
+  color: var(--text);
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.segmented button.active {
+  background: var(--accent);
+  color: var(--b
