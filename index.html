@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Time & Focus Studio — Clocks, Pomodoro, and Motivation</title>
+  <title>Focus Studio</title>
   <meta name="description" content="A responsive, customizable website featuring an analog and digital clock, a Pomodoro timer, dark/light themes, full theme customization, and endlessly generated motivational messages that change every hour." />
   <style>
     :root {
@@ -427,7 +427,6 @@
   <header class="topbar">
     <div class="topbar-inner container">
       <div class="brand">
-        <div class="logo" aria-hidden="true"></div>
         <div>
           <div style="font-size:1rem">Time & Focus Studio</div>
           <div class="subtle" style="font-size:.85rem">Clocks • Pomodoro • Motivation</div>
@@ -438,51 +437,6 @@
           <button id="btnLight" role="tab" aria-selected="false" title="Light mode">Light</button>
           <button id="btnDark" role="tab" aria-selected="true" class="active" title="Dark mode">Dark</button>
         </div>
-        <details>
-          <summary>Theme Designer</summary>
-          <div class="form-grid" style="margin-top:8px">
-            <label>Accent color
-              <input type="color" id="varAccent" value="#6aa0ff" />
-            </label>
-            <label>Background
-              <input type="color" id="varBg" value="#0b0f15" />
-            </label>
-            <label>Surface (cards)
-              <input type="color" id="varCard" value="#121826" />
-            </label>
-            <label>Text color
-              <input type="color" id="varText" value="#e8eef9" />
-            </label>
-            <label>Muted text
-              <input type="color" id="varMuted" value="#90A0B7" />
-            </label>
-            <label>Button color
-              <input type="color" id="varBtnBg" value="#6aa0ff" />
-            </label>
-            <label>Button text
-              <input type="color" id="varBtnText" value="#0c1117" />
-            </label>
-            <label>Button radius
-              <input type="range" id="varBtnRadius" min="0" max="28" value="12" />
-            </label>
-            <label>Base font
-              <select id="varFont">
-                <option value="system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Segoe UI Variable', 'Noto Sans', 'Liberation Sans', sans-serif">System Sans</option>
-                <option value="Georgia, 'Times New Roman', Times, serif">Serif</option>
-                <option value="ui-monospace, Menlo, Monaco, Consolas, 'Courier New', monospace">Monospace</option>
-              </select>
-            </label>
-            <label>Font size
-              <input type="range" id="varFontSize" min="14" max="22" value="16" />
-            </label>
-          </div>
-          <div class="row" style="margin-top:8px">
-            <button class="btn small" id="btnSaveTheme" title="Save theme">Save</button>
-            <button class="btn secondary small" id="btnResetTheme" title="Reset theme to defaults">Reset</button>
-            <button class="btn ghost small" id="btnExport" title="Export settings">Export</button>
-            <button class="btn ghost small" id="btnImport" title="Import settings">Import</button>
-          </div>
-        </details>
       </nav>
     </div>
   </header>
